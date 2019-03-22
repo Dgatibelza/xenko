@@ -42,16 +42,18 @@ namespace Xenko.Core.VisualStudio
         private static readonly Regex RegexParseProjectSection = new Regex(@"^(?<TYPE>ProjectSection)\((?<NAME>.*)\) = (?<STEP>.*)$");
         private static readonly Regex RegexParsePropertyLine = new Regex(@"^(?<PROPERTYNAME>[^=]*)\s*=\s*(?<PROPERTYVALUE>[^=]*)$");
         private static readonly Regex RegexParseVersionControlName = new Regex(@"^(?<NAME_WITHOUT_INDEX>[a-zA-Z]*)(?<INDEX>[0-9]+)$");
+        private readonly string solutionFullPath;
         private Solution solution;
         private int currentLineNumber;
         private StreamReader reader;
 
-        public SolutionReader(string solutionFullPath) : this(new FileStream(solutionFullPath, FileMode.Open, FileAccess.Read))
+        public SolutionReader(string solutionFullPath) : this(solutionFullPath, new FileStream(solutionFullPath, FileMode.Open, FileAccess.Read))
         {
         }
 
-        public SolutionReader([NotNull] Stream reader)
+        public SolutionReader(string solutionFullPath, [NotNull] Stream reader)
         {
+            this.solutionFullPath = solutionFullPath;
             this.reader = new StreamReader(reader, Encoding.Default);
             currentLineNumber = 0;
         }
@@ -93,7 +95,8 @@ namespace Xenko.Core.VisualStudio
                     {
                         // Read VS properties (introduced in VS2012/VS2013?)
                         solution.Properties.Add(ReadPropertyLine(line));
-                    } else
+                    }
+                    else
                     {
                         throw new SolutionFileException($"Invalid line read on line #{currentLineNumber}.\nFound: {line}\nExpected: A line beginning with 'Project(' or 'Global'.");
                     }
@@ -137,7 +140,7 @@ namespace Xenko.Core.VisualStudio
             {
                 localLineNumber++;
                 var match = RegexParseProjectConfigurationPlatformsName.Match(propertyLine.Name);
-                if (! match.Success)
+                if (!match.Success)
                 {
                     throw new SolutionFileException($"Invalid format for a project configuration name on line #{currentLineNumber}.\nFound: {propertyLine.Name}");
                 }
@@ -199,7 +202,7 @@ namespace Xenko.Core.VisualStudio
                 // can ignore it because we added the special case above.
                 if (uniqueNameProperty != null)
                 {
-                    var uniqueName = RegexConvertEscapedValues.Replace(uniqueNameProperty.Value, delegate(Match match)
+                    var uniqueName = RegexConvertEscapedValues.Replace(uniqueNameProperty.Value, match =>
                     {
                         var hexaValue = int.Parse(match.Groups["HEXACODE"].Value, NumberStyles.AllowHexSpecifier);
                         return char.ConvertFromUtf32(hexaValue);
@@ -209,7 +212,7 @@ namespace Xenko.Core.VisualStudio
                     Project relatedProject = null;
                     foreach (var project in solution.Projects)
                     {
-                        if (string.Compare(project.RelativePath, uniqueName, StringComparison.InvariantCultureIgnoreCase) == 0)
+                        if (string.Compare(project.GetRelativePath(solution), uniqueName, StringComparison.InvariantCultureIgnoreCase) == 0)
                         {
                             relatedProject = project;
                         }
@@ -243,7 +246,7 @@ namespace Xenko.Core.VisualStudio
         private void ReadGlobalSection([NotNull] string firstLine)
         {
             var match = RegexParseGlobalSection.Match(firstLine);
-            if (! match.Success)
+            if (!match.Success)
             {
                 throw new SolutionFileException($"Invalid format for a global section on line #{currentLineNumber}.\nFound: {firstLine}");
             }
@@ -323,10 +326,10 @@ namespace Xenko.Core.VisualStudio
                 throw new SolutionFileException($"Invalid format for a project on line #{currentLineNumber}.\nFound: {firstLine}.");
             }
 
-            var projectTypeGuid = match.Groups["PROJECTTYPEGUID"].Value.Trim();
+            var projectTypeGuid = new Guid(match.Groups["PROJECTTYPEGUID"].Value.Trim());
             var projectName = match.Groups["PROJECTNAME"].Value.Trim();
             var relativePath = match.Groups["RELATIVEPATH"].Value.Trim();
-            var projectGuid = match.Groups["PROJECTGUID"].Value.Trim();
+            var projectGuid = new Guid(match.Groups["PROJECTGUID"].Value.Trim());
 
             var projectSections = new List<Section>();
             for (var line = ReadLine(); !line.StartsWith("EndProject"); line = ReadLine())
@@ -335,11 +338,10 @@ namespace Xenko.Core.VisualStudio
             }
 
             return new Project(
-                solution,
-                new Guid(projectGuid),
-                new Guid(projectTypeGuid),
+                projectGuid,
+                projectTypeGuid,
                 projectName,
-                relativePath,
+                projectTypeGuid == KnownProjectTypeGuid.SolutionFolder ? relativePath : Path.Combine(Path.GetDirectoryName(solutionFullPath), relativePath),
                 Guid.Empty,
                 projectSections,
                 null,

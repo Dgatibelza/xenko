@@ -34,20 +34,14 @@ namespace Xenko.Assets.Media
             public DecodeSoundFileCommand(string url, SoundAsset parameters, IAssetFinder assetFinder)
                 : base(url, parameters, assetFinder)
             {
+                Version = 2;
             }
 
             /// <inheritdoc />
             protected override async Task<ResultStatus> DoCommandOverride(ICommandContext commandContext)
             {
                 // Get path to ffmpeg
-                var installationDir = DirectoryHelper.GetPackageDirectory("Xenko");
-                var binDir = UPath.Combine(installationDir, new UDirectory("Bin"));
-                binDir = UPath.Combine(binDir, new UDirectory("Windows"));
-                var ffmpeg = UPath.Combine(binDir, new UFile("ffmpeg.exe")).ToWindowsPath();
-                if (!File.Exists(ffmpeg))
-                {
-                    throw new AssetException("Failed to compile a sound asset. ffmpeg was not found.");
-                }
+                var ffmpeg = ToolLocator.LocateTool("ffmpeg.exe")?.ToWindowsPath() ?? throw new AssetException("Failed to compile a sound asset, ffmpeg was not found.");
 
                 // Get absolute path of asset source on disk
                 var assetDirectory = Parameters.Source.GetParent();
@@ -105,11 +99,12 @@ namespace Xenko.Assets.Media
                                 writer.Write((short)len);
                                 outputStream.Write(outputBuffer, 0, len);
 
-                                count = 0;
-                                Array.Clear(buffer, 0, frameSize);
-
+                                newSound.Samples += count / channels;
                                 newSound.NumberOfPackets++;
                                 newSound.MaxPacketLength = Math.Max(newSound.MaxPacketLength, len);
+
+                                count = 0;
+                                Array.Clear(buffer, 0, frameSize);
                             }
 
                             buffer[count] = reader.ReadSingle();
@@ -122,6 +117,7 @@ namespace Xenko.Assets.Media
                             writer.Write((short)len);
                             outputStream.Write(outputBuffer, 0, len);
 
+                            newSound.Samples += count / channels;
                             newSound.NumberOfPackets++;
                             newSound.MaxPacketLength = Math.Max(newSound.MaxPacketLength, len);
                         }

@@ -9,7 +9,7 @@ namespace Xenko.Core.IO
     /// <summary>
     /// Defines a normalized directory path. See <see cref="UPath"/> for details. This class cannot be inherited.
     /// </summary>
-    [DataContract("UDirectory")]
+    [DataContract("dir")]
     [TypeConverter(typeof(UDirectoryTypeConverter))]
     public sealed class UDirectory : UPath
     {
@@ -43,7 +43,7 @@ namespace Xenko.Core.IO
         public string GetDirectoryName()
         {
             var index = FullPath.IndexOfReverse(DirectorySeparatorChar);
-            return index >= 0 ? FullPath.Substring(index + 1) : "";
+            return index >= 0 ? FullPath.Substring(index + 1) : string.Empty;
         }
 
         /// <summary>

@@ -1,11 +1,11 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core;
-using Xenko.Games;
 using System.Collections.Generic;
 using System.Linq;
+using Xenko.Core;
 using Xenko.Engine;
+using Xenko.Games;
 
 namespace Xenko.Physics
 {
@@ -22,7 +22,7 @@ namespace Xenko.Physics
         static Bullet2PhysicsSystem()
         {
             // Preload proper libbulletc native library (depending on CPU type)
-            NativeLibrary.PreloadLibrary("libbulletc.dll");
+            NativeLibrary.PreloadLibrary("libbulletc.dll", typeof(Bullet2PhysicsSystem));
         }
 
         public Bullet2PhysicsSystem(IServiceRegistry registry)

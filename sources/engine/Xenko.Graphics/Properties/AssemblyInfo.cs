@@ -3,14 +3,13 @@
 using System.Reflection;
 using System.Runtime.CompilerServices;
 
-
 #pragma warning disable 436 // Xenko.PublicKeys is defined in multiple assemblies
 
 // Make internals Xenko visible to Xenko assemblies
 [assembly: InternalsVisibleTo("Xenko.Graphics.Serializers" + Xenko.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Xenko.Graphics.ShaderCompiler" + Xenko.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Xenko.Engine" + Xenko.PublicKeys.Default)]
-[assembly: InternalsVisibleTo("Xenko.Engine.Step1" + Xenko.PublicKeys.Default)]
+[assembly: InternalsVisibleTo("Xenko.Rendering" + Xenko.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Xenko.Games" + Xenko.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Xenko.UI" + Xenko.PublicKeys.Default)]
 [assembly: InternalsVisibleTo("Xenko.Graphics.Tests" + Xenko.PublicKeys.Default)]

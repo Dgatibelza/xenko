@@ -1,4 +1,4 @@
-﻿// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 //
 // Copyright (c) 2010-2013 SharpDX - Alexandre Mutel
@@ -20,14 +20,14 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+#pragma warning disable SA1402 // File may only contain a single type
 
 using System;
-using Xenko.Graphics;
 using System.Reflection;
+using Xenko.Graphics;
 
 namespace Xenko.Games
 {
- 
     /// <summary>
     /// Contains context used to render the game (Control for WinForm, a DrawingSurface for WP8...etc.).
     /// </summary>
@@ -96,7 +96,7 @@ namespace Xenko.Games
 
         /// <summary>
         /// Product location of game.
-		/// TODO: Only used for retrieving game's icon. See ProductName for future refactoring
+        /// TODO: Only used for retrieving game's icon. See ProductName for future refactoring
         /// </summary>
         public static string ProductLocation
         {
@@ -113,21 +113,19 @@ namespace Xenko.Games
 
         // This code is for backward compatibility only where the generated games
         // would not explicitly create the context, but would just use a Winform
-#if XENKO_PLATFORM_WINDOWS_DESKTOP
-#if (XENKO_UI_WINFORMS || XENKO_UI_WPF)
-        /// <summary>
+#if XENKO_PLATFORM_WINDOWS_DESKTOP && (XENKO_UI_WINFORMS || XENKO_UI_WPF)        /// <summary>
         /// Performs an implicit conversion from <see cref="Control"/> to <see cref="GameContextWinforms"/>.
         /// </summary>
         /// <param name="control">Winform control</param>
         /// <returns>The result of the conversion.</returns>
-        [Obsolete ("Use new GameContextWinforms(control) instead.")]
+        [Obsolete("Use new GameContextWinforms(control) instead.")]
         public static implicit operator GameContext(System.Windows.Forms.Control control)
         {
             return new GameContextWinforms(control);
         }
+#endif
 
-
-#if XENKO_GRAPHICS_API_OPENGL
+#if (XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_UNIX) && XENKO_GRAPHICS_API_OPENGL && XENKO_UI_OPENTK
         /// <summary>
         /// Performs an implicit conversion from <see cref="OpenTK.GameWindow"/> to <see cref="GameContextOpenTK"/>.
         /// </summary>
@@ -138,8 +136,6 @@ namespace Xenko.Games
         {
             return new GameContextOpenTK(gameWindow);
         }
-#endif
-#endif
 #endif
     }
 

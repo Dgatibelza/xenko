@@ -26,7 +26,7 @@ namespace Xenko.Rendering.Compositing
         private unsafe void PrepareLightprobeConstantBuffer(RenderContext context)
         {
             var renderView = context.RenderView;
-            var lightProbesData = context.RenderView.SceneInstance.GetProcessor<LightProbeProcessor>()?.RuntimeData;
+            var lightProbesData = context.VisibilityGroup.Tags.Get(LightProbeRenderer.CurrentLightProbes);
             if (lightProbesData != null)
             {
                 foreach (var renderFeature in context.RenderSystem.RenderFeatures)
@@ -64,7 +64,7 @@ namespace Xenko.Rendering.Compositing
             Buffer lightprobesCoefficients = null;
             var renderView = context.RenderView;
 
-            var lightProbesData = renderView.SceneInstance.GetProcessor<LightProbeProcessor>()?.RuntimeData;
+            var lightProbesData = context.VisibilityGroup.Tags.Get(LightProbeRenderer.CurrentLightProbes);
             if (lightProbesData == null || lightProbesData.Tetrahedra.Count == 0)
             {
                 // No lightprobes, we still set GPU resources (otherwise rendering might fetch invalid data)
@@ -85,7 +85,7 @@ namespace Xenko.Rendering.Compositing
             // Render IBL tetrahedra ID so that we can assign them per pixel
             //ibl = PushScopedResource(Context.Allocator.GetTemporaryTexture2D(drawContext.CommandList.DepthStencilBuffer.Width, drawContext.CommandList.DepthStencilBuffer.Height, PixelFormat.R16_UInt));
             ibl = PushScopedResource(Context.Allocator.GetTemporaryTexture2D(TextureDescription.New2D(drawContext.CommandList.DepthStencilBuffer.Width, drawContext.CommandList.DepthStencilBuffer.Height,
-                        1, PixelFormat.R16_UInt, TextureFlags.ShaderResource | TextureFlags.RenderTarget, 1 , GraphicsResourceUsage.Default, actualMultisampleCount)));
+                        1, PixelFormat.R16_UInt, TextureFlags.ShaderResource | TextureFlags.RenderTarget, 1, GraphicsResourceUsage.Default, actualMultisampleCount)));
             using (drawContext.PushRenderTargetsAndRestore())
             {
                 drawContext.CommandList.Clear(ibl, Color4.Black);
@@ -234,7 +234,6 @@ namespace Xenko.Rendering.Compositing
 
                 Array.Sort(tetraDepth);
 
-
                 // Draw shape
                 tetrahedronMatrices = PushScopedResource(Context.Allocator.GetTemporaryBuffer(new BufferDescription(tetraResult.Count * 3 * sizeof(Vector4), BufferFlags.ShaderResource, GraphicsResourceUsage.Default), PixelFormat.R32G32B32A32_Float));
                 tetrahedronProbeIndices = PushScopedResource(Context.Allocator.GetTemporaryBuffer(new BufferDescription(tetraResult.Count * 4 * sizeof(int), BufferFlags.ShaderResource, GraphicsResourceUsage.Default), PixelFormat.R32G32B32A32_UInt));
@@ -380,7 +379,7 @@ namespace Xenko.Rendering.Compositing
         }
 
         [StructLayout(LayoutKind.Sequential)]
-        struct LightProbeCBuffer
+        private struct LightProbeCBuffer
         {
             public int UserVertexCount;
         }

@@ -20,37 +20,15 @@
 // LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 // OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 // THE SOFTWARE.
+#pragma warning disable SA1402 // File may only contain a single type
 
 using System;
-using System.Runtime.CompilerServices;
-using Xenko.Graphics;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
+using Xenko.Graphics;
 
 namespace Xenko.Games
 {
-
-    public abstract class GameWindow<TK> : GameWindow
-    {
-        protected internal sealed override void Initialize(GameContext gameContext)
-        {
-            var context = gameContext as GameContext<TK>;
-            if (context != null)
-            {
-                GameContext = context;
-                Initialize(context);
-            }
-            else
-            {
-                throw new InvalidOperationException("Invalid context for current game.");
-            }
-        }
-
-        internal GameContext<TK> GameContext;
-
-        protected abstract void Initialize(GameContext<TK> context);
-    }
-
     /// <summary>
     /// An abstract window.
     /// </summary>
@@ -120,6 +98,12 @@ namespace Xenko.Games
         /// </summary>
         /// <value><c>true</c> if this instance is minimized; otherwise, <c>false</c>.</value>
         public abstract bool IsMinimized { get; }
+
+        /// <summary>
+        /// Gets a value indicating whether this instance is in focus.
+        /// </summary>
+        /// <value><c>true</c> if this instance is in focus; otherwise, <c>false</c>.</value>
+        public abstract bool Focused { get; }
 
         /// <summary>
         /// Gets or sets a value indicating whether the mouse pointer is visible over this window.
@@ -257,5 +241,26 @@ namespace Xenko.Games
         {
             OnActivated(this, EventArgs.Empty);
         }
+    }
+
+    public abstract class GameWindow<TK> : GameWindow
+    {
+        protected internal sealed override void Initialize(GameContext gameContext)
+        {
+            var context = gameContext as GameContext<TK>;
+            if (context != null)
+            {
+                GameContext = context;
+                Initialize(context);
+            }
+            else
+            {
+                throw new InvalidOperationException("Invalid context for current game.");
+            }
+        }
+
+        internal GameContext<TK> GameContext;
+
+        protected abstract void Initialize(GameContext<TK> context);
     }
 }

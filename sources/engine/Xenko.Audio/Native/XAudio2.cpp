@@ -1589,6 +1589,19 @@ extern "C" {
 			void __stdcall OnLoopEnd(void* context) override;
 
 			void __stdcall OnVoiceError(void* context, HRESULT error) override;
+
+			void GetState(XAUDIO2_VOICE_STATE* state)
+			{
+				if (xnAudioWindows7Hacks)
+				{
+					auto win7Voice = reinterpret_cast<IXAudio2SourceVoice1*>(source_voice_);
+					win7Voice->GetState(state);
+				}
+				else
+				{
+					source_voice_->GetState(state, 0);
+				}
+			}
 		};
 
 		DLL_EXPORT_API xnAudioSource* xnAudioSourceCreate(xnAudioListener* listener, int sampleRate, int maxNBuffers, npBool mono, npBool spatialized, npBool streamed, npBool hrtf, float directionFactor, HrtfEnvironment environment)
@@ -1801,16 +1814,7 @@ extern "C" {
 			if(!source->streamed_ && !source->pause_)
 			{
 				XAUDIO2_VOICE_STATE state;
-				if (xnAudioWindows7Hacks)
-				{
-					auto win7Voice = reinterpret_cast<IXAudio2SourceVoice1*>(source->source_voice_);
-					win7Voice->GetState(&state);
-				}
-				else
-				{
-					source->source_voice_->GetState(&state, 0);
-				}
-
+				source->GetState(&state);
 				source->samplesAtBegin = state.SamplesPlayed;
 			}
 
@@ -1858,28 +1862,10 @@ extern "C" {
 		DLL_EXPORT_API double xnAudioSourceGetPosition(xnAudioSource* source)
 		{
 			XAUDIO2_VOICE_STATE state;
-			if(xnAudioWindows7Hacks)
-			{
-				auto win7Voice = reinterpret_cast<IXAudio2SourceVoice1*>(source->source_voice_);
-				win7Voice->GetState(&state);
-			}
-			else
-			{
-				source->source_voice_->GetState(&state, 0);
-			}
+			source->GetState(&state);
 
 			if (!source->streamed_)
-			{
-				auto elapsed = double(state.SamplesPlayed - source->samplesAtBegin) / double(source->sampleRate_);
-				auto singleBuffer = source->freeBuffers_[0];
-				auto length = singleBuffer->buffer_.PlayLength == 0 ? 
-					double(singleBuffer->length_) / double(source->sampleRate_) : 
-					double(singleBuffer->buffer_.PlayLength) / double(source->sampleRate_);
-				auto position = elapsed / length;
-				auto repeats = floor(position);
-				position = (position - repeats) * length;
-				return position;
-			}
+				return double(source->single_buffer_.PlayBegin + state.SamplesPlayed - source->samplesAtBegin) / double(source->sampleRate_);
 			
 			//things work different for streamed sources, but anyway we simply subtract the snapshotted samples at begin of the stream ( could be the begin of the loop )
 			return double(state.SamplesPlayed - source->samplesAtBegin) / double(source->sampleRate_);
@@ -1971,15 +1957,7 @@ extern "C" {
 				{
 					//we need this info to compute position of stream
 					XAUDIO2_VOICE_STATE state;
-					if (xnAudioWindows7Hacks)
-					{
-						auto win7Voice = reinterpret_cast<IXAudio2SourceVoice1*>(source_voice_);
-						win7Voice->GetState(&state);
-					}
-					else
-					{
-						source_voice_->GetState(&state, 0);
-					}
+					GetState(&state);
 
 					samplesAtBegin = state.SamplesPlayed;
 				}
@@ -2009,6 +1987,13 @@ extern "C" {
 
         void xnAudioSource::OnLoopEnd(void* context)
 		{
+			if (!streamed_)
+			{
+				XAUDIO2_VOICE_STATE state;
+				GetState(&state);
+
+				samplesAtBegin = state.SamplesPlayed;
+			}
 		}
 
 		DLL_EXPORT_API void xnAudioSourceQueueBuffer(xnAudioSource* source, xnAudioBuffer* buffer, short* pcm, int bufferSize, BufferType type)
@@ -2126,7 +2111,7 @@ extern "C" {
 				source->source_voice_->SetOutputMatrix(source->mastering_voice_, 1, AUDIO_CHANNELS, source->dsp_settings_->pMatrixCoefficients);
 				source->doppler_pitch_ = source->dsp_settings_->DopplerFactor;
 				source->source_voice_->SetFrequencyRatio(source->dsp_settings_->DopplerFactor * source->pitch_);
-				XAUDIO2_FILTER_PARAMETERS filter_parameters = { LowPassFilter, 2.0f * sin(X3DAUDIO_PI / 6.0f * source->dsp_settings_->LPFDirectCoefficient), 1.0f };
+				XAUDIO2_FILTER_PARAMETERS filter_parameters = { LowPassFilter, 2.0f * (float)sin(X3DAUDIO_PI / 6.0f * source->dsp_settings_->LPFDirectCoefficient), 1.0f };
 				if (!xnAudioWindows7Hacks) source->source_voice_->SetFilterParameters(&filter_parameters);
 
 				source->apply3DLock_.Unlock();

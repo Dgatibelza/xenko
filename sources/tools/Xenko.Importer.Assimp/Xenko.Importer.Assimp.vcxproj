@@ -28,11 +28,13 @@
   </ItemGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Debug'">
     <LinkIncremental>true</LinkIncremental>
-    <OutDir>$(OutputPath)</OutDir>
+    <OutDir>bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)'=='Release'">
     <LinkIncremental>false</LinkIncremental>
-    <OutDir>$(OutputPath)</OutDir>
+    <OutDir>bin\$(Platform)\$(Configuration)\</OutDir>
+    <IntDir>obj\$(Platform)\$(Configuration)\</IntDir>
   </PropertyGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{C2306552-6C42-464C-8981-32FEF4F9458D}</ProjectGuid>
@@ -192,6 +194,10 @@
     </ProjectReference>
     <ProjectReference Include="..\..\engine\Xenko.Engine\Xenko.Engine.csproj">
       <Project>{c121a566-555e-42b9-9b0a-1696529a9088}</Project>
+      <Private>False</Private>
+    </ProjectReference>
+    <ProjectReference Include="..\..\engine\Xenko.Rendering\Xenko.Rendering.csproj">
+      <Project>{ad4fdc24-b64d-4ed7-91aa-62c9eda12fa4}</Project>
       <Private>False</Private>
     </ProjectReference>
     <ProjectReference Include="..\..\core\Xenko.Core\Xenko.Core.csproj">

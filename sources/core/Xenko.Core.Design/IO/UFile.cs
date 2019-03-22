@@ -9,7 +9,7 @@ namespace Xenko.Core.IO
     /// <summary>
     /// Defines a normalized file path. See <see cref="UPath"/> for details. This class cannot be inherited.
     /// </summary>
-    [DataContract("UFile")]
+    [DataContract("file")]
     [TypeConverter(typeof(UFileTypeConverter))]
     public sealed class UFile : UPath
     {
@@ -35,8 +35,6 @@ namespace Xenko.Core.IO
                 span.Length = ExtensionSpan.Next - span.Start;
             }
             return span.IsValid ? FullPath.Substring(span) : null;
-
-
         }
 
         /// <summary>
@@ -135,7 +133,7 @@ namespace Xenko.Core.IO
         /// </summary>
         /// <param name="path">The path.</param>
         /// <returns><c>true</c> if the specified path is a valid <see cref="UFile"/>; otherwise, <c>false</c>.</returns>
-        public new static bool IsValid([NotNull] string path)
+        public static new bool IsValid([NotNull] string path)
         {
             if (path == null) throw new ArgumentNullException(nameof(path));
             if (!UPath.IsValid(path))

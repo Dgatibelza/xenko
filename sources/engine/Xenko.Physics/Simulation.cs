@@ -1,14 +1,13 @@
 // Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
 
-using Xenko.Core.Mathematics;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Xenko.Core.Collections;
 using Xenko.Core.Diagnostics;
-using Xenko.Core.Threading;
+using Xenko.Core.Mathematics;
 using Xenko.Engine;
+using Xenko.Rendering;
 
 namespace Xenko.Physics
 {
@@ -31,7 +30,7 @@ namespace Xenko.Physics
         internal readonly bool CanCcd;
 
 #if DEBUG
-        private readonly static Logger Log = GlobalLogger.GetLogger(typeof(Simulation).FullName);
+        private static readonly Logger Log = GlobalLogger.GetLogger(typeof(Simulation).FullName);
 #endif
 
         public bool ContinuousCollisionDetection
@@ -67,7 +66,6 @@ namespace Xenko.Physics
         /// Temporary solution to inject engine flags
         /// </summary>
         public static OnSimulationCreationDelegate OnSimulationCreation;
-
 
         /// <summary>
         /// Initializes the Physics engine using the specified flags.
@@ -141,11 +139,11 @@ namespace Xenko.Physics
             }
         }
 
-        readonly List<Collision> newCollisionsCache = new List<Collision>();
-        readonly List<Collision> removedCollisionsCache = new List<Collision>();
-        readonly List<ContactPoint> newContactsFastCache = new List<ContactPoint>();
-        readonly List<ContactPoint> updatedContactsCache = new List<ContactPoint>();
-        readonly List<ContactPoint> removedContactsCache = new List<ContactPoint>();
+        private readonly List<Collision> newCollisionsCache = new List<Collision>();
+        private readonly List<Collision> removedCollisionsCache = new List<Collision>();
+        private readonly List<ContactPoint> newContactsFastCache = new List<ContactPoint>();
+        private readonly List<ContactPoint> updatedContactsCache = new List<ContactPoint>();
+        private readonly List<ContactPoint> removedContactsCache = new List<ContactPoint>();
 
         //private ProfilingState contactsProfilingState;
 
@@ -373,7 +371,7 @@ namespace Xenko.Physics
                         {
                             InternalConeTwistConstraint = new BulletSharp.ConeTwistConstraint(rbA, frameA),
 
-                            RigidBodyA = rigidBodyA
+                            RigidBodyA = rigidBodyA,
                         };
 
                         constraint.InternalConstraint = constraint.InternalConeTwistConstraint;
@@ -388,7 +386,7 @@ namespace Xenko.Physics
                         {
                             InternalGeneric6DofConstraint = new BulletSharp.Generic6DofConstraint(rbA, frameA, useReferenceFrameA),
 
-                            RigidBodyA = rigidBodyA
+                            RigidBodyA = rigidBodyA,
                         };
 
                         constraint.InternalConstraint = constraint.InternalGeneric6DofConstraint;
@@ -403,7 +401,7 @@ namespace Xenko.Physics
                         {
                             InternalGeneric6DofSpringConstraint = new BulletSharp.Generic6DofSpringConstraint(rbA, frameA, useReferenceFrameA),
 
-                            RigidBodyA = rigidBodyA
+                            RigidBodyA = rigidBodyA,
                         };
 
                         constraint.InternalConstraint = constraint.InternalGeneric6DofConstraint = constraint.InternalGeneric6DofSpringConstraint;
@@ -453,7 +451,7 @@ namespace Xenko.Physics
                             InternalPoint2PointConstraint = new BulletSharp.Point2PointConstraint(rbA, rbB, frameA.TranslationVector, frameB.TranslationVector),
 
                             RigidBodyA = rigidBodyA,
-                            RigidBodyB = rigidBodyB
+                            RigidBodyB = rigidBodyB,
                         };
 
                         constraint.InternalConstraint = constraint.InternalPoint2PointConstraint;
@@ -470,7 +468,7 @@ namespace Xenko.Physics
                             InternalHingeConstraint = new BulletSharp.HingeConstraint(rbA, rbB, frameA, frameB, useReferenceFrameA),
 
                             RigidBodyA = rigidBodyA,
-                            RigidBodyB = rigidBodyB
+                            RigidBodyB = rigidBodyB,
                         };
 
                         constraint.InternalConstraint = constraint.InternalHingeConstraint;
@@ -487,7 +485,7 @@ namespace Xenko.Physics
                             InternalSliderConstraint = new BulletSharp.SliderConstraint(rbA, rbB, frameA, frameB, useReferenceFrameA),
 
                             RigidBodyA = rigidBodyA,
-                            RigidBodyB = rigidBodyB
+                            RigidBodyB = rigidBodyB,
                         };
 
                         constraint.InternalConstraint = constraint.InternalSliderConstraint;
@@ -504,7 +502,7 @@ namespace Xenko.Physics
                             InternalConeTwistConstraint = new BulletSharp.ConeTwistConstraint(rbA, rbB, frameA, frameB),
 
                             RigidBodyA = rigidBodyA,
-                            RigidBodyB = rigidBodyB
+                            RigidBodyB = rigidBodyB,
                         };
 
                         constraint.InternalConstraint = constraint.InternalConeTwistConstraint;
@@ -521,7 +519,7 @@ namespace Xenko.Physics
                             InternalGeneric6DofConstraint = new BulletSharp.Generic6DofConstraint(rbA, rbB, frameA, frameB, useReferenceFrameA),
 
                             RigidBodyA = rigidBodyA,
-                            RigidBodyB = rigidBodyB
+                            RigidBodyB = rigidBodyB,
                         };
 
                         constraint.InternalConstraint = constraint.InternalGeneric6DofConstraint;
@@ -538,7 +536,7 @@ namespace Xenko.Physics
                             InternalGeneric6DofSpringConstraint = new BulletSharp.Generic6DofSpringConstraint(rbA, rbB, frameA, frameB, useReferenceFrameA),
 
                             RigidBodyA = rigidBodyA,
-                            RigidBodyB = rigidBodyB
+                            RigidBodyB = rigidBodyB,
                         };
 
                         constraint.InternalConstraint = constraint.InternalGeneric6DofConstraint = constraint.InternalGeneric6DofSpringConstraint;
@@ -555,7 +553,7 @@ namespace Xenko.Physics
                             InternalGearConstraint = new BulletSharp.GearConstraint(rbA, rbB, frameA.TranslationVector, frameB.TranslationVector),
 
                             RigidBodyA = rigidBodyA,
-                            RigidBodyB = rigidBodyB
+                            RigidBodyB = rigidBodyB,
                         };
 
                         constraint.InternalConstraint = constraint.InternalGearConstraint;
@@ -627,7 +625,7 @@ namespace Xenko.Physics
                     Collider = collisionObject.UserObject as PhysicsComponent,
                     Point = point,
                     Normal = normal,
-                    HitFraction = hitFraction
+                    HitFraction = hitFraction,
                 });
             }
         }
@@ -649,7 +647,7 @@ namespace Xenko.Physics
                     Collider = collisionObject.UserObject as PhysicsComponent,
                     Point = point,
                     Normal = normal,
-                    HitFraction = hitFraction
+                    HitFraction = hitFraction,
                 });
             }
         }
@@ -694,7 +692,7 @@ namespace Xenko.Physics
             using (var rcb = new BulletSharp.ClosestRayResultCallback(from, to)
             {
                 CollisionFilterGroup = (short)collisionFilterGroups,
-                CollisionFilterMask = (short)collisionFilterGroupFlags
+                CollisionFilterMask = (short)collisionFilterGroupFlags,
             })
             {
                 collisionWorld.RayTest(ref from, ref to, rcb);
@@ -751,7 +749,7 @@ namespace Xenko.Physics
             using (var rcb = new XenkoAllHitsRayResultCallback(ref from, ref to, resultsOutput)
             {
                 CollisionFilterGroup = (short)collisionFilterGroups,
-                CollisionFilterMask = (short)collisionFilterGroupFlags
+                CollisionFilterMask = (short)collisionFilterGroupFlags,
             })
             {
                 collisionWorld.RayTest(ref from, ref to, rcb);
@@ -823,7 +821,7 @@ namespace Xenko.Physics
             using (var rcb = new BulletSharp.ClosestConvexResultCallback(from.TranslationVector, to.TranslationVector)
             {
                 CollisionFilterGroup = (BulletSharp.CollisionFilterGroups)collisionFilterGroups,
-                CollisionFilterMask = (BulletSharp.CollisionFilterGroups)collisionFilterGroupFlags
+                CollisionFilterMask = (BulletSharp.CollisionFilterGroups)collisionFilterGroupFlags,
             })
             {
                 collisionWorld.ConvexSweepTest(sh, from, to, rcb);
@@ -891,7 +889,7 @@ namespace Xenko.Physics
             using (var rcb = new XenkoAllHitsConvexResultCallback(resultsOutput)
             {
                 CollisionFilterGroup = (BulletSharp.CollisionFilterGroups)collisionFilterGroups,
-                CollisionFilterMask = (BulletSharp.CollisionFilterGroups)collisionFilterGroupFlags
+                CollisionFilterMask = (BulletSharp.CollisionFilterGroups)collisionFilterGroupFlags,
             })
             {
                 collisionWorld.ConvexSweepTest(sh, from, to, rcb);
@@ -992,7 +990,7 @@ namespace Xenko.Physics
 
         internal int UpdatedRigidbodies;
 
-        readonly SimulationArgs simulationArgs = new SimulationArgs();
+        private readonly SimulationArgs simulationArgs = new SimulationArgs();
 
         internal ProfilingState SimulationProfiler;
 
@@ -1225,7 +1223,7 @@ namespace Xenko.Physics
             IntPtr buffer;
             int bufferSize;
             collisionWorld.GetCollisions(component.NativeCollisionObject, (short)component.CanCollideWith, (short)component.CollisionGroup, out buffer, out bufferSize);
-            var contacts = (NativeContactPoint*) buffer;
+            var contacts = (NativeContactPoint*)buffer;
             for (var i = 0; i < bufferSize; i++)
             {
                 var contact = contacts[i];
@@ -1236,7 +1234,7 @@ namespace Xenko.Physics
                 var component1 = (PhysicsComponent)obj1.UserObject;
 
                 //disable static-static
-                if (component0 is StaticColliderComponent && component1 is StaticColliderComponent || !component0.Enabled || !component1.Enabled)
+                if ((component0 is StaticColliderComponent && component1 is StaticColliderComponent) || !component0.Enabled || !component1.Enabled)
                     continue;
 
                 currentFrameContacts.Add(new ContactPoint
@@ -1246,7 +1244,7 @@ namespace Xenko.Physics
                     Distance = contact.Distance,
                     Normal = contact.Normal,
                     PositionOnA = contact.PositionOnA,
-                    PositionOnB = contact.PositionOnB
+                    PositionOnB = contact.PositionOnB,
                 });
             }
         }

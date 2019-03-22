@@ -18,12 +18,12 @@ namespace Xenko.Core
         /// <summary>
         /// The system temporary directory.
         /// </summary>
-        public static string TemporaryDirectory = GetTemporaryDirectory();
+        public static readonly string TemporaryDirectory = GetTemporaryDirectory();
 
         /// <summary>
         /// The Application temporary directory.
         /// </summary>
-        public static string ApplicationTemporaryDirectory = GetApplicationTemporaryDirectory();
+        public static readonly string ApplicationTemporaryDirectory = GetApplicationTemporaryDirectory();
 
         /// <summary>
         /// The application local directory, where user can write local data (included in backup).
@@ -52,7 +52,8 @@ namespace Xenko.Core
         /// <remarks>This property should not be written after the VirtualFileSystem static initialization. If so, an InvalidOperationExeception will be thrown.</remarks>
         public static string ApplicationDataSubDirectory
         {
-            get { return applicationDataSubDirectory; } 
+            get { return applicationDataSubDirectory; }
+
             set
             {
                 if (virtualFileSystemInitialized) 
@@ -74,7 +75,7 @@ namespace Xenko.Core
         /// <remarks>Might be null if start executable is unknown.</remarks>
         public static readonly string ApplicationExecutablePath = GetApplicationExecutablePath();
 
-        private static string applicationDataSubDirectory = "";
+        private static string applicationDataSubDirectory = string.Empty;
 
         private static bool virtualFileSystemInitialized;
 
@@ -137,24 +138,18 @@ namespace Xenko.Core
         {
 #if XENKO_PLATFORM_ANDROID
             var directory = Path.Combine(PlatformAndroid.Context.FilesDir.AbsolutePath, "cache");
-            Directory.CreateDirectory(directory);
-            return directory;
 #elif XENKO_PLATFORM_UWP
             var directory = Path.Combine(Windows.Storage.ApplicationData.Current.LocalFolder.Path, "cache");
-            IO.NativeFile.DirectoryCreate(directory);
-            return directory;
 #elif XENKO_PLATFORM_IOS
             var directory = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "..", "Library", "Caches");
-            Directory.CreateDirectory(directory);
-            return directory;
 #else
             // TODO: Should we add "local" ?
             var directory = Path.Combine(GetApplicationBinaryDirectory(), "cache");
+#endif
             Directory.CreateDirectory(directory);
             return directory;
-#endif
         }
-        
+
         private static string GetApplicationExecutablePath()
         {
 #if XENKO_PLATFORM_WINDOWS_DESKTOP || XENKO_PLATFORM_MONO_MOBILE || XENKO_PLATFORM_UNIX

@@ -23,13 +23,13 @@
 
 using System;
 using System.Reflection;
-using Xenko.Core.Diagnostics;
-using Xenko.Games.Time;
-using Xenko.Graphics;
 using Xenko.Core;
 using Xenko.Core.Annotations;
+using Xenko.Core.Diagnostics;
 using Xenko.Core.IO;
 using Xenko.Core.Serialization.Contents;
+using Xenko.Games.Time;
+using Xenko.Graphics;
 
 namespace Xenko.Games
 {
@@ -94,9 +94,13 @@ namespace Xenko.Games
             timer = new TimerTick();
             IsFixedTimeStep = false;
             maximumElapsedTime = TimeSpan.FromMilliseconds(500.0);
-            TargetElapsedTime = TimeSpan.FromTicks(10000000 / 60); // target elapsed time is by default 60Hz
+            TargetElapsedTime = TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 60); // target elapsed time is by default 60Hz
             lastUpdateCount = new int[4];
             nextLastUpdateCountIndex = 0;
+            
+            TreatNotFocusedLikeMinimized = true;
+            WindowMinimumUpdateRate      = new ThreadThrottler(TimeSpan.FromSeconds(0d));
+            MinimizedMinimumUpdateRate   = new ThreadThrottler(TimeSpan.FromTicks(TimeSpan.TicksPerSecond / 15)); // by default 15 updates per second while minimized
 
             // Calculate the updateCountAverageSlowLimit (assuming moving average is >=3 )
             // Example for a moving average of 4:
@@ -117,9 +121,9 @@ namespace Xenko.Games
 
             // Create Platform
             gamePlatform = GamePlatform.Create(this);
-            gamePlatform.Activated += gamePlatform_Activated;
-            gamePlatform.Deactivated += gamePlatform_Deactivated;
-            gamePlatform.Exiting += gamePlatform_Exiting;
+            gamePlatform.Activated += GamePlatform_Activated;
+            gamePlatform.Deactivated += GamePlatform_Deactivated;
+            gamePlatform.Exiting += GamePlatform_Exiting;
             gamePlatform.WindowCreated += GamePlatformOnWindowCreated;
 
             // Setup registry
@@ -302,10 +306,28 @@ namespace Xenko.Games
         public ServiceRegistry Services { get; }
 
         /// <summary>
-        /// Gets or sets the target elapsed time.
+        /// Gets or sets the target elapsed time, this is the duration of each tick/update 
+        /// when <see cref="IsFixedTimeStep"/> is enabled.
         /// </summary>
         /// <value>The target elapsed time.</value>
         public TimeSpan TargetElapsedTime { get; set; }
+
+        /// <summary>
+        /// Access to the throttler used to set the minimum time allowed between each updates, 
+        /// set it's <see cref="ThreadThrottler.MinimumElapsedTime"/> to TimeSpan.FromSeconds(1d / yourFramePerSeconds) to control the maximum frames per second.
+        /// </summary>
+        public ThreadThrottler WindowMinimumUpdateRate { get; }
+
+        /// <summary>
+        /// Access to the throttler used to set the minimum time allowed between each updates while the window is minimized and,
+        /// depending on <see cref="TreatNotFocusedLikeMinimized"/>, while unfocused.
+        /// </summary>
+        public ThreadThrottler MinimizedMinimumUpdateRate { get; }
+
+        /// <summary>
+        /// Considers windows without user focus like a minimized window for <see cref="MinimizedMinimumUpdateRate"/> 
+        /// </summary>
+        public bool TreatNotFocusedLikeMinimized { get; set; }
 
         /// <summary>
         /// Gets the abstract window.
@@ -451,7 +473,7 @@ namespace Xenko.Games
             try
             {
                 // TODO temporary workaround as the engine doesn't support yet resize
-                var graphicsDeviceManagerImpl = (GraphicsDeviceManager) graphicsDeviceManager;
+                var graphicsDeviceManagerImpl = (GraphicsDeviceManager)graphicsDeviceManager;
                 Context.RequestedWidth = graphicsDeviceManagerImpl.PreferredBackBufferWidth;
                 Context.RequestedHeight = graphicsDeviceManagerImpl.PreferredBackBufferHeight;
                 Context.RequestedBackBufferFormat = graphicsDeviceManagerImpl.PreferredBackBufferFormat;
@@ -515,7 +537,6 @@ namespace Xenko.Games
         {
             try
             {
-
                 // If this instance is existing, then don't make any further update/draw
                 if (isExiting)
                 {
@@ -581,7 +602,7 @@ namespace Xenko.Games
 
                     if (IsDrawDesynchronized)
                     {
-                        drawLag = accumulatedElapsedGameTime.Ticks%TargetElapsedTime.Ticks;
+                        drawLag = accumulatedElapsedGameTime.Ticks % TargetElapsedTime.Ticks;
                         suppressNextDraw = false;
                     }
                     else if (updateCount == 0)
@@ -599,13 +620,13 @@ namespace Xenko.Games
                     }
 
                     updateCountMean /= lastUpdateCount.Length;
-                    nextLastUpdateCountIndex = (nextLastUpdateCountIndex + 1)%lastUpdateCount.Length;
+                    nextLastUpdateCountIndex = (nextLastUpdateCountIndex + 1) % lastUpdateCount.Length;
 
                     // Test when we are running slowly
                     drawRunningSlowly = updateCountMean > updateCountAverageSlowLimit;
 
                     // We are going to call Update updateCount times, so we can substract this from accumulated elapsed game time
-                    accumulatedElapsedGameTime = new TimeSpan(accumulatedElapsedGameTime.Ticks - (updateCount*TargetElapsedTime.Ticks));
+                    accumulatedElapsedGameTime = new TimeSpan(accumulatedElapsedGameTime.Ticks - (updateCount * TargetElapsedTime.Ticks));
                     singleFrameElapsedTime = TargetElapsedTime;
                 }
                 else
@@ -618,7 +639,6 @@ namespace Xenko.Games
                 bool beginDrawSuccessful = false;
                 try
                 {
-
                     beginDrawSuccessful = BeginDraw();
 
                     // Reset the time of the next frame
@@ -652,7 +672,7 @@ namespace Xenko.Games
                     if (!suppressNextDraw)
                     {
                         totalDrawTime = TimeSpan.FromTicks(totalUpdateTime.Ticks + drawLag);
-                        DrawInterpolationFactor = drawLag/(float)TargetElapsedTime.Ticks;
+                        DrawInterpolationFactor = drawLag / (float)TargetElapsedTime.Ticks;
                         DrawFrame();
                     }
 
@@ -665,6 +685,10 @@ namespace Xenko.Games
                         using (Profiler.Begin(GameProfilingKeys.GameEndDraw))
                         {
                             EndDraw(true);
+                            if (gamePlatform.MainWindow.IsMinimized || gamePlatform.MainWindow.Visible == false || (gamePlatform.MainWindow.Focused == false && TreatNotFocusedLikeMinimized))
+                                MinimizedMinimumUpdateRate.Throttle(out _);
+                            else
+                                WindowMinimumUpdateRate.Throttle(out _);
                         }
                     }
 
@@ -831,7 +855,7 @@ namespace Xenko.Games
         {
         }
 
-        /// <summary>Called after the Game and GraphicsDevice are created, but before LoadContent.  Reference page contains code sample.</summary>
+        /// <summary>Called after the Game is created, but before GraphicsDevice is available and before LoadContent(). Reference page contains code sample.</summary>
         protected virtual void Initialize()
         {
             GameSystems.Initialize();
@@ -888,7 +912,6 @@ namespace Xenko.Games
             OnWindowCreated();
         }
 
-
         /// <summary>
         /// This is used to display an error message if there is no suitable graphics device or sound card.
         /// </summary>
@@ -929,7 +952,7 @@ namespace Xenko.Games
             singleFrameUpdateTime += updateTimer.ElapsedTime;
         }
 
-        private void gamePlatform_Activated(object sender, EventArgs e)
+        private void GamePlatform_Activated(object sender, EventArgs e)
         {
             if (!IsActive)
             {
@@ -938,7 +961,7 @@ namespace Xenko.Games
             }
         }
 
-        private void gamePlatform_Deactivated(object sender, EventArgs e)
+        private void GamePlatform_Deactivated(object sender, EventArgs e)
         {
             if (IsActive)
             {
@@ -947,7 +970,7 @@ namespace Xenko.Games
             }
         }
 
-        private void gamePlatform_Exiting(object sender, EventArgs e)
+        private void GamePlatform_Exiting(object sender, EventArgs e)
         {
             OnExiting(this, EventArgs.Empty);
         }
@@ -1000,25 +1023,25 @@ namespace Xenko.Games
             resumeManager = new ResumeManager(Services);
 
             GraphicsDevice = graphicsDeviceService.GraphicsDevice;
-            graphicsDeviceService.DeviceCreated += graphicsDeviceService_DeviceCreated;
-            graphicsDeviceService.DeviceResetting += graphicsDeviceService_DeviceResetting;
-            graphicsDeviceService.DeviceReset += graphicsDeviceService_DeviceReset;
-            graphicsDeviceService.DeviceDisposing += graphicsDeviceService_DeviceDisposing;
+            graphicsDeviceService.DeviceCreated += GraphicsDeviceService_DeviceCreated;
+            graphicsDeviceService.DeviceResetting += GraphicsDeviceService_DeviceResetting;
+            graphicsDeviceService.DeviceReset += GraphicsDeviceService_DeviceReset;
+            graphicsDeviceService.DeviceDisposing += GraphicsDeviceService_DeviceDisposing;
         }
 
         private void DisposeGraphicsDeviceEvents()
         {
             if (graphicsDeviceService != null)
             {
-                graphicsDeviceService.DeviceCreated -= graphicsDeviceService_DeviceCreated;
-                graphicsDeviceService.DeviceResetting -= graphicsDeviceService_DeviceResetting;
-                graphicsDeviceService.DeviceReset -= graphicsDeviceService_DeviceReset;
-                graphicsDeviceService.DeviceDisposing -= graphicsDeviceService_DeviceDisposing;
+                graphicsDeviceService.DeviceCreated -= GraphicsDeviceService_DeviceCreated;
+                graphicsDeviceService.DeviceResetting -= GraphicsDeviceService_DeviceResetting;
+                graphicsDeviceService.DeviceReset -= GraphicsDeviceService_DeviceReset;
+                graphicsDeviceService.DeviceDisposing -= GraphicsDeviceService_DeviceDisposing;
                 GraphicsDevice = null;
             }
         }
 
-        private void graphicsDeviceService_DeviceCreated(object sender, EventArgs e)
+        private void GraphicsDeviceService_DeviceCreated(object sender, EventArgs e)
         {
             GraphicsDevice = graphicsDeviceService.GraphicsDevice;
 
@@ -1028,7 +1051,7 @@ namespace Xenko.Games
             }
         }
 
-        private void graphicsDeviceService_DeviceDisposing(object sender, EventArgs e)
+        private void GraphicsDeviceService_DeviceDisposing(object sender, EventArgs e)
         {
             // TODO: Unload all assets
             //Content.UnloadAll();
@@ -1043,7 +1066,7 @@ namespace Xenko.Games
             GraphicsDevice = null;
         }
 
-        private void graphicsDeviceService_DeviceReset(object sender, EventArgs e)
+        private void GraphicsDeviceService_DeviceReset(object sender, EventArgs e)
         {
             // TODO: ResumeManager?
             //throw new NotImplementedException();
@@ -1051,7 +1074,7 @@ namespace Xenko.Games
             resumeManager.OnRecreate();
         }
 
-        private void graphicsDeviceService_DeviceResetting(object sender, EventArgs e)
+        private void GraphicsDeviceService_DeviceResetting(object sender, EventArgs e)
         {
             // TODO: ResumeManager?
             //throw new NotImplementedException();

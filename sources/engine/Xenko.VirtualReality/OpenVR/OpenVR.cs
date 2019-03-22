@@ -3,11 +3,12 @@
 #if XENKO_GRAPHICS_API_DIRECT3D11
 
 using System;
+using System.Text;
 using SharpDX.Direct3D11;
+using Valve.VR;
 using Xenko.Core;
 using Xenko.Core.Mathematics;
 using Xenko.Graphics;
-using Valve.VR;
 
 namespace Xenko.VirtualReality
 {
@@ -21,7 +22,7 @@ namespace Xenko.VirtualReality
             public enum Hand
             {
                 Left,
-                Right
+                Right,
             }
 
             public static int GetDeviceIndex(Hand hand)
@@ -150,12 +151,52 @@ namespace Xenko.VirtualReality
             }
         }
 
+        public class TrackedDevice
+        {
+            public TrackedDevice(int trackerIndex)
+            {
+                TrackerIndex = trackerIndex;
+            }
+
+            const int StringBuilderSize = 64;
+            StringBuilder serialNumberStringBuilder = new StringBuilder(StringBuilderSize);
+            internal string SerialNumber
+            {
+                get
+                {
+                    var error = ETrackedPropertyError.TrackedProp_Success;
+                    serialNumberStringBuilder.Clear();
+                    Valve.VR.OpenVR.System.GetStringTrackedDeviceProperty((uint)TrackerIndex, ETrackedDeviceProperty.Prop_SerialNumber_String, serialNumberStringBuilder, StringBuilderSize, ref error);
+                    if (error == ETrackedPropertyError.TrackedProp_Success)
+                        return serialNumberStringBuilder.ToString();
+                    else
+                        return "";
+                }
+            }
+
+            internal float BatteryPercentage
+            {
+                get
+                {
+                    var error = ETrackedPropertyError.TrackedProp_Success;
+                    var value = Valve.VR.OpenVR.System.GetFloatTrackedDeviceProperty((uint)TrackerIndex, ETrackedDeviceProperty.Prop_DeviceBatteryPercentage_Float, ref error);
+                    if (error == ETrackedPropertyError.TrackedProp_Success)
+                        return value;
+                    else
+                        return 0;
+                }
+            }
+
+            internal int TrackerIndex;
+            internal ETrackedDeviceClass DeviceClass => Valve.VR.OpenVR.System.GetTrackedDeviceClass((uint)TrackerIndex);
+        }
+
         private static readonly TrackedDevicePose_t[] DevicePoses = new TrackedDevicePose_t[Valve.VR.OpenVR.k_unMaxTrackedDeviceCount];
         private static readonly TrackedDevicePose_t[] GamePoses = new TrackedDevicePose_t[Valve.VR.OpenVR.k_unMaxTrackedDeviceCount];
 
         static OpenVR()
         {
-            NativeLibrary.PreloadLibrary("openvr_api.dll");
+            NativeLibrary.PreloadLibrary("openvr_api.dll", typeof(OpenVR));
         }
 
         public static bool InitDone = false;
@@ -190,14 +231,14 @@ namespace Xenko.VirtualReality
             {
                 eType = EGraphicsAPIConvention.API_DirectX,
                 eColorSpace = EColorSpace.Auto,
-                handle = texture.NativeResource.NativePointer
+                handle = texture.NativeResource.NativePointer,
             };
             var bounds = new VRTextureBounds_t
             {
                 uMin = viewport.X,
                 uMax = viewport.Width,
                 vMin = viewport.Y,
-                vMax = viewport.Height
+                vMax = viewport.Height,
             };
 
             return Valve.VR.OpenVR.Compositor.Submit(eyeIndex == 0 ? EVREye.Eye_Left : EVREye.Eye_Right, ref tex, ref bounds, EVRSubmitFlags.Submit_Default) == EVRCompositorError.None;
@@ -224,6 +265,11 @@ namespace Xenko.VirtualReality
         public static void Recenter()
         {
             Valve.VR.OpenVR.System.ResetSeatedZeroPose();
+        }
+
+        public static void SetTrackingSpace(ETrackingUniverseOrigin space)
+        {
+            Valve.VR.OpenVR.Compositor.SetTrackingSpace(space);
         }
 
         public static DeviceState GetControllerPose(int controllerIndex, out Matrix pose, out Vector3 velocity, out Vector3 angVelocity)
@@ -266,6 +312,35 @@ namespace Xenko.VirtualReality
             }
 
             return DeviceState.Invalid;
+        }
+
+        public static DeviceState GetTrackerPose(int trackerIndex, out Matrix pose, out Vector3 velocity, out Vector3 angVelocity)
+        {
+            return GetTrackerPoseUnsafe(trackerIndex, out pose, out velocity, out angVelocity);
+        }
+
+        private static unsafe DeviceState GetTrackerPoseUnsafe(int trackerIndex, out Matrix pose, out Vector3 velocity, out Vector3 angVelocity)
+        {
+            pose = Matrix.Identity;
+            velocity = Vector3.Zero;
+            angVelocity = Vector3.Zero;
+            var index = trackerIndex;
+
+            Utilities.CopyMemory((IntPtr)Interop.Fixed(ref pose), (IntPtr)Interop.Fixed(ref DevicePoses[index].mDeviceToAbsoluteTracking), Utilities.SizeOf<HmdMatrix34_t>());
+            Utilities.CopyMemory((IntPtr)Interop.Fixed(ref velocity), (IntPtr)Interop.Fixed(ref DevicePoses[index].vVelocity), Utilities.SizeOf<HmdVector3_t>());
+            Utilities.CopyMemory((IntPtr)Interop.Fixed(ref angVelocity), (IntPtr)Interop.Fixed(ref DevicePoses[index].vAngularVelocity), Utilities.SizeOf<HmdVector3_t>());
+
+            var state = DeviceState.Invalid;
+            if (DevicePoses[index].bDeviceIsConnected && DevicePoses[index].bPoseIsValid)
+            {
+                state = DeviceState.Valid;
+            }
+            else if (DevicePoses[index].bDeviceIsConnected && !DevicePoses[index].bPoseIsValid && DevicePoses[index].eTrackingResult == ETrackingResult.Running_OutOfRange)
+            {
+                state = DeviceState.OutOfRange;
+            }
+
+            return state;
         }
 
         public static DeviceState GetHeadPose(out Matrix pose, out Vector3 linearVelocity, out Vector3 angularVelocity)
@@ -355,7 +430,7 @@ namespace Xenko.VirtualReality
             {
                 eType = EGraphicsAPIConvention.API_DirectX,
                 eColorSpace = EColorSpace.Auto,
-                handle = texture.NativeResource.NativePointer
+                handle = texture.NativeResource.NativePointer,
             };
            
             return Valve.VR.OpenVR.Overlay.SetOverlayTexture(overlayId, ref tex) == EVROverlayError.None;
@@ -383,7 +458,7 @@ namespace Xenko.VirtualReality
 
         public static void SetOverlayEnabled(ulong overlayId, bool enabled)
         {
-            if(enabled)
+            if (enabled)
                 Valve.VR.OpenVR.Overlay.ShowOverlay(overlayId);
             else
                 Valve.VR.OpenVR.Overlay.HideOverlay(overlayId);

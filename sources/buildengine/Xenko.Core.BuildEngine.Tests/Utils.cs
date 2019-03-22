@@ -24,7 +24,7 @@ namespace Xenko.Core.BuildEngine.Tests
         public static Logger CleanContext()
         {
             // delete previous build data
-            if(Directory.Exists(BuildPath))
+            if (Directory.Exists(BuildPath))
                 Directory.Delete(BuildPath, true);
 
             // Create database directory
@@ -52,7 +52,7 @@ namespace Xenko.Core.BuildEngine.Tests
             var logger = new LoggerResult();
             logger.ActivateLog(LogMessageType.Debug);
             var indexName = createIndexFile ? VirtualFileSystem.ApplicationDatabaseIndexName : null;
-            var builder = new Builder(logger, BuildPath, "Windows", indexName) { BuilderName = "TestBuilder" };
+            var builder = new Builder(logger, BuildPath, indexName) { BuilderName = "TestBuilder" };
             return builder;
         }
 

@@ -5,8 +5,8 @@ using System;
 using System.Collections.Generic;
 
 using SharpDX;
-using SharpDX.DXGI;
 using SharpDX.Direct3D11;
+using SharpDX.DXGI;
 
 namespace Xenko.Graphics
 {
@@ -115,8 +115,8 @@ namespace Xenko.Graphics
                     {
                         ElementCount = this.ElementCount,
                         FirstElement = 0,
-                        Flags = ShaderResourceViewExtendedBufferFlags.None
-                    }
+                        Flags = ShaderResourceViewExtendedBufferFlags.None,
+                    },
                 };
 
                 if (((ViewFlags & BufferFlags.RawBuffer) == BufferFlags.RawBuffer))
@@ -147,8 +147,8 @@ namespace Xenko.Graphics
                     Buffer =
                     {
                         ElementWidth = pixelFormat.SizeInBytes() * width,
-                        ElementOffset = 0
-                    }
+                        ElementOffset = 0,
+                    },
                 };
 
                 srv = new RenderTargetView(this.GraphicsDevice.NativeDevice, NativeBuffer, description);
@@ -240,6 +240,9 @@ namespace Xenko.Graphics
             if ((bufferFlags & BufferFlags.ArgumentBuffer) == BufferFlags.ArgumentBuffer)
                 desc.OptionFlags |= ResourceOptionFlags.DrawIndirectArguments;
 
+            if ((bufferFlags & BufferFlags.StreamOutput) != 0)
+                desc.BindFlags |= BindFlags.StreamOutput;
+
             return desc;
         }
 
@@ -274,7 +277,7 @@ namespace Xenko.Graphics
                     {
                         ElementCount = this.ElementCount,
                         FirstElement = 0,
-                        Flags = UnorderedAccessViewBufferFlags.None
+                        Flags = UnorderedAccessViewBufferFlags.None,
                     },
                 };
 

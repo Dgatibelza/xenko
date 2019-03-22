@@ -8,7 +8,7 @@ using Xenko.Shaders;
 
 namespace Xenko.Graphics
 {
-    struct ResourceBinder
+    internal struct ResourceBinder
     {
         private BindingOperation[][] descriptorSetBindings;
 
@@ -84,7 +84,7 @@ namespace Xenko.Graphics
                             }
                         case EffectParameterClass.UnorderedAccessView:
                             {
-                                commandList.SetUnorderedAccessView(bindingOperation.Stage, bindingOperation.SlotStart, (GraphicsResource)value.Value);
+                                commandList.SetUnorderedAccessView(bindingOperation.Stage, bindingOperation.SlotStart, (GraphicsResource)value.Value, value.Offset);
                                 break;
                             }
                         default:

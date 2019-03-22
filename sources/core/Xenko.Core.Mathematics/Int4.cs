@@ -93,7 +93,6 @@ namespace Xenko.Core.Mathematics
         [DataMember(3)]
         public int W;
 
-
         /// <summary>
         ///   Initializes a new instance of the <see cref = "Int4" /> struct.
         /// </summary>
@@ -121,7 +120,6 @@ namespace Xenko.Core.Mathematics
             W = w;
         }
 
-
         /// <summary>
         ///   Initializes a new instance of the <see cref = "Int4" /> struct.
         /// </summary>
@@ -133,8 +131,7 @@ namespace Xenko.Core.Mathematics
             if (values == null)
                 throw new ArgumentNullException("values");
             if (values.Length != 4)
-                throw new ArgumentOutOfRangeException("values",
-                                                      "There must be four and only four input values for Int4.");
+                throw new ArgumentOutOfRangeException("values", "There must be four and only four input values for Int4.");
 
             X = values[0];
             Y = values[1];
@@ -191,12 +188,38 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
+        /// Calculates the length of the vector.
+        /// </summary>
+        /// <returns>The length of the vector.</returns>
+        /// <remarks>
+        /// <see cref="Int4.LengthSquared"/> may be preferred when only the relative length is needed
+        /// and speed is of the essence.
+        /// </remarks>
+        public int Length()
+        {
+            return (int)Math.Sqrt((X * X) + (Y * Y) + (Z * Z) + (W * W));
+        }
+
+        /// <summary>
+        /// Calculates the squared length of the vector.
+        /// </summary>
+        /// <returns>The squared length of the vector.</returns>
+        /// <remarks>
+        /// This method may be preferred to <see cref="Int4.Length"/> when only a relative length is needed
+        /// and speed is of the essence.
+        /// </remarks>
+        public int LengthSquared()
+        {
+            return (X * X) + (Y * Y) + (Z * Z) + (W * W);
+        }
+
+        /// <summary>
         ///   Creates an array containing the elements of the vector.
         /// </summary>
         /// <returns>A four-element array containing the components of the vector.</returns>
         public int[] ToArray()
         {
-            return new int[] {X, Y, Z, W};
+            return new int[] { X, Y, Z, W };
         }
 
         /// <summary>
@@ -251,7 +274,7 @@ namespace Xenko.Core.Mathematics
         /// <param name = "result">When the method completes, contains the scaled vector.</param>
         public static void Multiply(ref Int4 value, int scale, out Int4 result)
         {
-            result = new Int4(value.X*scale, value.Y*scale, value.Z*scale, value.W*scale);
+            result = new Int4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
         }
 
         /// <summary>
@@ -262,7 +285,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The scaled vector.</returns>
         public static Int4 Multiply(Int4 value, int scale)
         {
-            return new Int4(value.X*scale, value.Y*scale, value.Z*scale, value.W*scale);
+            return new Int4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
         }
 
         /// <summary>
@@ -273,7 +296,7 @@ namespace Xenko.Core.Mathematics
         /// <param name = "result">When the method completes, contains the modulated vector.</param>
         public static void Modulate(ref Int4 left, ref Int4 right, out Int4 result)
         {
-            result = new Int4(left.X*right.X, left.Y*right.Y, left.Z*right.Z, left.W*right.W);
+            result = new Int4(left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W);
         }
 
         /// <summary>
@@ -284,7 +307,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The modulated vector.</returns>
         public static Int4 Modulate(Int4 left, Int4 right)
         {
-            return new Int4(left.X*right.X, left.Y*right.Y, left.Z*right.Z, left.W*right.W);
+            return new Int4(left.X * right.X, left.Y * right.Y, left.Z * right.Z, left.W * right.W);
         }
 
         /// <summary>
@@ -295,7 +318,7 @@ namespace Xenko.Core.Mathematics
         /// <param name = "result">When the method completes, contains the scaled vector.</param>
         public static void Divide(ref Int4 value, int scale, out Int4 result)
         {
-            result = new Int4(value.X/scale, value.Y/scale, value.Z/scale, value.W/scale);
+            result = new Int4(value.X / scale, value.Y / scale, value.Z / scale, value.W / scale);
         }
 
         /// <summary>
@@ -306,7 +329,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The scaled vector.</returns>
         public static Int4 Divide(Int4 value, int scale)
         {
-            return new Int4(value.X/scale, value.Y/scale, value.Z/scale, value.W/scale);
+            return new Int4(value.X / scale, value.Y / scale, value.Z / scale, value.W / scale);
         }
 
         /// <summary>
@@ -475,7 +498,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The scaled vector.</returns>
         public static Int4 operator *(int scale, Int4 value)
         {
-            return new Int4(value.X*scale, value.Y*scale, value.Z*scale, value.W*scale);
+            return new Int4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
         }
 
         /// <summary>
@@ -486,7 +509,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The scaled vector.</returns>
         public static Int4 operator *(Int4 value, int scale)
         {
-            return new Int4(value.X*scale, value.Y*scale, value.Z*scale, value.W*scale);
+            return new Int4(value.X * scale, value.Y * scale, value.Z * scale, value.W * scale);
         }
 
         /// <summary>
@@ -497,7 +520,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The scaled vector.</returns>
         public static Int4 operator /(Int4 value, int scale)
         {
-            return new Int4(value.X/scale, value.Y/scale, value.Z/scale, value.W/scale);
+            return new Int4(value.X / scale, value.Y / scale, value.Z / scale, value.W / scale);
         }
 
         /// <summary>
@@ -553,10 +576,10 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        ///   Returns a <see cref = "System.String" /> that represents this instance.
+        ///   Returns a <see cref = "string" /> that represents this instance.
         /// </summary>
         /// <returns>
-        ///   A <see cref = "System.String" /> that represents this instance.
+        ///   A <see cref = "string" /> that represents this instance.
         /// </returns>
         public override string ToString()
         {
@@ -564,11 +587,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        ///   Returns a <see cref = "System.String" /> that represents this instance.
+        ///   Returns a <see cref = "string" /> that represents this instance.
         /// </summary>
         /// <param name = "format">The format.</param>
         /// <returns>
-        ///   A <see cref = "System.String" /> that represents this instance.
+        ///   A <see cref = "string" /> that represents this instance.
         /// </returns>
         public string ToString(string format)
         {
@@ -583,11 +606,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        ///   Returns a <see cref = "System.String" /> that represents this instance.
+        ///   Returns a <see cref = "string" /> that represents this instance.
         /// </summary>
         /// <param name = "formatProvider">The format provider.</param>
         /// <returns>
-        ///   A <see cref = "System.String" /> that represents this instance.
+        ///   A <see cref = "string" /> that represents this instance.
         /// </returns>
         public string ToString(IFormatProvider formatProvider)
         {
@@ -595,12 +618,12 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        ///   Returns a <see cref = "System.String" /> that represents this instance.
+        ///   Returns a <see cref = "string" /> that represents this instance.
         /// </summary>
         /// <param name = "format">The format.</param>
         /// <param name = "formatProvider">The format provider.</param>
         /// <returns>
-        ///   A <see cref = "System.String" /> that represents this instance.
+        ///   A <see cref = "string" /> that represents this instance.
         /// </returns>
         public string ToString(string format, IFormatProvider formatProvider)
         {
@@ -636,11 +659,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        ///   Determines whether the specified <see cref = "System.Object" /> is equal to this instance.
+        ///   Determines whether the specified <see cref = "object" /> is equal to this instance.
         /// </summary>
-        /// <param name = "value">The <see cref = "System.Object" /> to compare with this instance.</param>
+        /// <param name = "value">The <see cref = "object" /> to compare with this instance.</param>
         /// <returns>
-        ///   <c>true</c> if the specified <see cref = "System.Object" /> is equal to this instance; otherwise, <c>false</c>.
+        ///   <c>true</c> if the specified <see cref = "object" /> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public override bool Equals(object value)
         {
@@ -650,7 +673,7 @@ namespace Xenko.Core.Mathematics
             if (value.GetType() != GetType())
                 return false;
 
-            return Equals((Int4) value);
+            return Equals((Int4)value);
         }
 
         /// <summary>
@@ -664,7 +687,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Int4"/> to <see cref="System.Int32"/> array.
+        /// Performs an implicit conversion from <see cref="Xenko.Core.Mathematics.Int4"/> to <see cref="int"/> array.
         /// </summary>
         /// <param name="input">The input.</param>
         /// <returns>The result of the conversion.</returns>

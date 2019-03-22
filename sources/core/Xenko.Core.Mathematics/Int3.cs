@@ -143,14 +143,6 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Gets a value indicting whether this instance is normalized.
-        /// </summary>
-        public bool IsNormalized
-        {
-            get { return Math.Abs((X * X) + (Y * Y) + (Z * Z) - 1f) < MathUtil.ZeroTolerance; }
-        }
-
-        /// <summary>
         /// Gets or sets the component at the specified index.
         /// </summary>
         /// <value>The value of the X, Y, or Z component, depending on the index.</value>
@@ -207,21 +199,6 @@ namespace Xenko.Core.Mathematics
         public int LengthSquared()
         {
             return (X * X) + (Y * Y) + (Z * Z);
-        }
-
-        /// <summary>
-        /// Converts the vector into a unit vector.
-        /// </summary>
-        public void Normalize()
-        {
-            int length = Length();
-            if (length > MathUtil.ZeroTolerance)
-            {
-                int inv = 1 / length;
-                X *= inv;
-                Y *= inv;
-                Z *= inv;
-            }
         }
 
         /// <summary>
@@ -435,28 +412,6 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Converts the vector into a unit vector.
-        /// </summary>
-        /// <param name="value">The vector to normalize.</param>
-        /// <param name="result">When the method completes, contains the normalized vector.</param>
-        public static void Normalize(ref Int3 value, out Int3 result)
-        {
-            result = value;
-            result.Normalize();
-        }
-
-        /// <summary>
-        /// Converts the vector into a unit vector.
-        /// </summary>
-        /// <param name="value">The vector to normalize.</param>
-        /// <returns>The normalized vector.</returns>
-        public static Int3 Normalize(Int3 value)
-        {
-            value.Normalize();
-            return value;
-        }
-
-        /// <summary>
         /// Performs a linear interpolation between two vectors.
         /// </summary>
         /// <param name="start">Start vector.</param>
@@ -638,7 +593,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The scaled vector.</returns>
         public static Int3 operator *(Int3 value, float scale)
         {
-            return new Int3((int)(value.X * scale),(int)(value.Y * scale),(int)(value.Z * scale));
+            return new Int3((int)(value.X * scale), (int)(value.Y * scale), (int)(value.Z * scale));
         }
 
         /// <summary>
@@ -705,10 +660,10 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public override string ToString()
         {
@@ -716,11 +671,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <param name="format">The format.</param>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public string ToString(string format)
         {
@@ -732,11 +687,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <param name="formatProvider">The format provider.</param>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public string ToString(IFormatProvider formatProvider)
         {
@@ -744,12 +699,12 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Returns a <see cref="System.String"/> that represents this instance.
+        /// Returns a <see cref="string"/> that represents this instance.
         /// </summary>
         /// <param name="format">The format.</param>
         /// <param name="formatProvider">The format provider.</param>
         /// <returns>
-        /// A <see cref="System.String"/> that represents this instance.
+        /// A <see cref="string"/> that represents this instance.
         /// </returns>
         public string ToString(string format, IFormatProvider formatProvider)
         {
@@ -776,7 +731,7 @@ namespace Xenko.Core.Mathematics
         /// </summary>
         /// <param name="other">The <see cref="Int3"/> to compare with this instance.</param>
         /// <returns>
-        /// 	<c>true</c> if the specified <see cref="Int3"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="Int3"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public bool Equals(Int3 other)
         {
@@ -786,11 +741,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="System.Object"/> is equal to this instance.
+        /// Determines whether the specified <see cref="object"/> is equal to this instance.
         /// </summary>
-        /// <param name="value">The <see cref="System.Object"/> to compare with this instance.</param>
+        /// <param name="value">The <see cref="object"/> to compare with this instance.</param>
         /// <returns>
-        /// 	<c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public override bool Equals(object value)
         {

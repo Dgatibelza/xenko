@@ -70,6 +70,11 @@ namespace Xenko.Graphics
         /// <summary>
         /// Creates an indirect arguments buffer.
         /// </summary>
-        ArgumentBuffer = 1024
+        ArgumentBuffer = 1024,
+
+        /// <summary>
+        /// Creates a buffer for the geometry shader stream-output stage.
+        /// </summary>
+        StreamOutput = 2048,
     }
 }

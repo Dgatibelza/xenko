@@ -352,7 +352,8 @@ namespace Xenko.Core.Mathematics
 
             float max, min;
 
-            max = r; min = r;
+            max = r;
+            min = r;
 
             if (g > max) max = g;
             if (b > max) max = b;
@@ -380,7 +381,8 @@ namespace Xenko.Core.Mathematics
             float delta;
             float hue = 0.0f;
 
-            max = r; min = r;
+            max = r;
+            min = r;
 
             if (g > max) max = g;
             if (b > max) max = b;
@@ -424,7 +426,8 @@ namespace Xenko.Core.Mathematics
             float max, min;
             float l, s = 0;
 
-            max = r; min = r;
+            max = r;
+            min = r;
 
             if (g > max) max = g;
             if (b > max) max = b;
@@ -434,7 +437,6 @@ namespace Xenko.Core.Mathematics
 
             // if max == min, then there is no color and
             // the saturation is zero.
-            //
             if (max != min)
             {
                 l = (max + min) / 2;
@@ -473,7 +475,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The sum of the two colors.</returns>
         public static Color Add(Color left, Color right)
         {
-            return new Color(left.R + right.R, left.G + right.G, left.B + right.B, left.A + right.A);
+            return new Color((byte)(left.R + right.R), (byte)(left.G + right.G), (byte)(left.B + right.B), (byte)(left.A + right.A));
         }
 
         /// <summary>
@@ -498,7 +500,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The difference of the two colors.</returns>
         public static Color Subtract(Color left, Color right)
         {
-            return new Color(left.R - right.R, left.G - right.G, left.B - right.B, left.A - right.A);
+            return new Color((byte)(left.R - right.R), (byte)(left.G - right.G), (byte)(left.B - right.B), (byte)(left.A - right.A));
         }
 
         /// <summary>
@@ -509,10 +511,10 @@ namespace Xenko.Core.Mathematics
         /// <param name="result">When the method completes, contains the modulated color.</param>
         public static void Modulate(ref Color left, ref Color right, out Color result)
         {
-            result.A = (byte)(left.A * right.A / 255.0f);
-            result.R = (byte)(left.R * right.R / 255.0f);
-            result.G = (byte)(left.G * right.G / 255.0f);
-            result.B = (byte)(left.B * right.B / 255.0f);
+            result.A = (byte)(left.A * right.A / 255);
+            result.R = (byte)(left.R * right.R / 255);
+            result.G = (byte)(left.G * right.G / 255);
+            result.B = (byte)(left.B * right.B / 255);
         }
 
         /// <summary>
@@ -523,7 +525,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The modulated color.</returns>
         public static Color Modulate(Color left, Color right)
         {
-            return new Color(left.R * right.R, left.G * right.G, left.B * right.B, left.A * right.A);
+            return new Color((byte)(left.R * right.R / 255), (byte)(left.G * right.G / 255), (byte)(left.B * right.B / 255), (byte)(left.A * right.A / 255));
         }
 
         /// <summary>
@@ -571,7 +573,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The negated color.</returns>
         public static Color Negate(Color value)
         {
-            return new Color(255 - value.R, 255 - value.G, 255 - value.B, 255 - value.A);
+            return new Color((byte)(255 - value.R), (byte)(255 - value.G), (byte)(255 - value.B), (byte)(255 - value.A));
         }
 
         /// <summary>
@@ -862,7 +864,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The sum of the two colors.</returns>
         public static Color operator +(Color left, Color right)
         {
-            return new Color(left.R + right.R, left.G + right.G, left.B + right.B, left.A + right.A);
+            return new Color((byte)(left.R + right.R), (byte)(left.G + right.G), (byte)(left.B + right.B), (byte)(left.A + right.A));
         }
 
         /// <summary>
@@ -883,7 +885,7 @@ namespace Xenko.Core.Mathematics
         /// <returns>The difference of the two colors.</returns>
         public static Color operator -(Color left, Color right)
         {
-            return new Color(left.R - right.R, left.G - right.G, left.B - right.B, left.A - right.A);
+            return new Color((byte)(left.R - right.R), (byte)(left.G - right.G), (byte)(left.B - right.B), (byte)(left.A - right.A));
         }
 
         /// <summary>
@@ -1041,7 +1043,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="System.Int32"/> to <see cref="Color"/>.
+        /// Performs an explicit conversion from <see cref="int"/> to <see cref="Color"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>
@@ -1053,7 +1055,7 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Performs an explicit conversion from <see cref="System.Int32"/> to <see cref="Color"/>.
+        /// Performs an explicit conversion from <see cref="int"/> to <see cref="Color"/>.
         /// </summary>
         /// <param name="value">The value.</param>
         /// <returns>
@@ -1099,11 +1101,11 @@ namespace Xenko.Core.Mathematics
         }
 
         /// <summary>
-        /// Determines whether the specified <see cref="System.Object"/> is equal to this instance.
+        /// Determines whether the specified <see cref="object"/> is equal to this instance.
         /// </summary>
-        /// <param name="value">The <see cref="System.Object"/> to compare with this instance.</param>
+        /// <param name="value">The <see cref="object"/> to compare with this instance.</param>
         /// <returns>
-        /// <c>true</c> if the specified <see cref="System.Object"/> is equal to this instance; otherwise, <c>false</c>.
+        /// <c>true</c> if the specified <see cref="object"/> is equal to this instance; otherwise, <c>false</c>.
         /// </returns>
         public override bool Equals(object value)
         {

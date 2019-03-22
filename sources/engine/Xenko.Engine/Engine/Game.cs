@@ -6,12 +6,11 @@ using System.Globalization;
 using System.IO;
 using System.Reflection;
 using System.Threading.Tasks;
+using Xenko.Audio;
 using Xenko.Core.Diagnostics;
 using Xenko.Core.IO;
 using Xenko.Core.Mathematics;
-using Xenko.Core.Serialization.Contents;
 using Xenko.Core.Storage;
-using Xenko.Audio;
 using Xenko.Engine.Design;
 using Xenko.Engine.Processors;
 using Xenko.Games;
@@ -22,6 +21,7 @@ using Xenko.Profiling;
 using Xenko.Rendering;
 using Xenko.Rendering.Fonts;
 using Xenko.Rendering.Sprites;
+using Xenko.Shaders.Compiler;
 using Xenko.Streaming;
 using Xenko.VirtualReality;
 
@@ -104,17 +104,17 @@ namespace Xenko.Engine
         public SpriteAnimationSystem SpriteAnimation { get; }
 
         /// <summary>
-        /// Gets the game profiler system
+        /// Gets the game profiler system.
         /// </summary>
         public DebugTextSystem DebugTextSystem { get; }
 
         /// <summary>
-        /// Gets the game profiler system
+        /// Gets the game profiler system.
         /// </summary>
         public GameProfilingSystem ProfilingSystem { get; }
 
         /// <summary>
-        /// Gets the VR Device System
+        /// Gets the VR Device System.
         /// </summary>
         public VRDeviceSystem VRDeviceSystem { get; }
 
@@ -371,10 +371,17 @@ namespace Xenko.Engine
             Services.AddService(EffectSystem);
 
             // If requested in game settings, compile effects remotely and/or notify new shader requests
-            EffectSystem.Compiler = EffectSystem.CreateEffectCompiler(Content.FileProvider, EffectSystem, Settings?.PackageId, Settings?.EffectCompilation ?? EffectCompilationMode.Local, Settings?.RecordUsedEffects ?? false);
+            EffectSystem.Compiler = EffectCompilerFactory.CreateEffectCompiler(Content.FileProvider, EffectSystem, Settings?.PackageName, Settings?.EffectCompilation ?? EffectCompilationMode.Local, Settings?.RecordUsedEffects ?? false);
+
+            // Setup shader compiler settings from a compilation mode. 
+            // TODO: We might want to provide overrides on the GameSettings to specify debug and/or optim level specifically.
+            if (Settings != null)
+                EffectSystem.SetCompilationMode(Settings.CompilationMode);
 
             GameSystems.Add(EffectSystem);
 
+            if (Settings != null)
+                Streaming.SetStreamingSettings(Settings.Configurations.Get<StreamingSettings>());
             GameSystems.Add(Streaming);
             GameSystems.Add(SceneSystem);
 

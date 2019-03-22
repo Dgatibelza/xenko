@@ -40,10 +40,9 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
             }
 
             recentGroup = new TemplateDescriptionGroupViewModel(serviceProvider, "Recent projects");
-            var mru = EditorViewModel.Instance.MRU;
-            foreach (var file in mru.MostRecentlyUsedFiles)
+            foreach (var file in EditorViewModel.Instance.RecentFiles)
             {
-                var viewModel = new ExistingProjectViewModel(ServiceProvider, file.FilePath);
+                var viewModel = new ExistingProjectViewModel(ServiceProvider, file.FilePath, RemoveExistingProjects);
                 recentGroup.Templates.Add(viewModel);
             }
 
@@ -52,7 +51,7 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
                 Location = UPath.Combine<UDirectory>(Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments), "Xenko Projects");
 
             BrowseForExistingProjectCommand = new AnonymousTaskCommand(serviceProvider, BrowseForExistingProject);
-            SelectedGroup = rootGroup;
+            SelectedGroup = recentGroup.Templates.Count == 0 ? rootGroup : recentGroup;
         }
 
         public override IEnumerable<TemplateDescriptionGroupViewModel> RootGroups { get { yield return recentGroup; yield return rootGroup; } }
@@ -91,12 +90,22 @@ namespace Xenko.Core.Assets.Editor.Components.TemplateDescriptions.ViewModels
             return GenerateUniqueNameAtLocation();
         }
 
+        private void RemoveExistingProjects(ExistingProjectViewModel item)
+        {
+            if (item == null)
+                return;
+
+            EditorViewModel.Instance.RemoveRecentFile(item.Path);
+            SelectedGroup.Templates.Remove(item);
+            UpdateTemplateList();
+        }
+
         private async Task BrowseForExistingProject()
         {
             var filePath = await EditorDialogHelper.BrowseForExistingProject(ServiceProvider);
             if (filePath != null)
             {
-                SelectedTemplate = new ExistingProjectViewModel(ServiceProvider, filePath);
+                SelectedTemplate = new ExistingProjectViewModel(ServiceProvider, filePath, RemoveExistingProjects);
                 dialog?.RequestClose(DialogResult.Ok);
             }
         }

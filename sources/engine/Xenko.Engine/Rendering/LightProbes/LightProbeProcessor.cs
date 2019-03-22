@@ -9,19 +9,16 @@ using Xenko.Engine;
 
 namespace Xenko.Rendering.LightProbes
 {
-    public class LightProbeProcessor : EntityProcessor<LightProbeComponent>
+    public class LightProbeProcessor : EntityProcessor<LightProbeComponent>, IEntityComponentRenderProcessor
     {
-        private ObjectId previousLightProbeHash;
         private bool needPositionUpdate = false;
 
         public LightProbeProcessor() : base(typeof(TransformComponent))
         {
         }
 
-        /// <summary>
-        /// The current light probe runtime data.
-        /// </summary>
-        public LightProbeRuntimeData RuntimeData { get; private set; }
+        /// <inheritdoc/>
+        public VisibilityGroup VisibilityGroup { get; set; }
 
         /// <summary>
         /// Light probe runtime data is auto-computed when lightprobes are added/removed.  If you move them at runtime, please call this method.
@@ -31,7 +28,7 @@ namespace Xenko.Rendering.LightProbes
         /// </remarks>
         public void UpdateLightProbePositions()
         {
-            RuntimeData = null;
+            VisibilityGroup.Tags.Set(LightProbeRenderer.CurrentLightProbes, null);
             needPositionUpdate = false;
 
             // Initial load
@@ -49,7 +46,7 @@ namespace Xenko.Rendering.LightProbes
                 if (lightProbes.Count < 4)
                     return;
 
-                RuntimeData = LightProbeGenerator.GenerateRuntimeData(lightProbes);
+                VisibilityGroup.Tags.Set(LightProbeRenderer.CurrentLightProbes, LightProbeGenerator.GenerateRuntimeData(lightProbes));
             }
             catch
             {
@@ -63,10 +60,11 @@ namespace Xenko.Rendering.LightProbes
         /// </summary>
         public void UpdateLightProbeCoefficients()
         {
-            if (RuntimeData == null)
+            var runtimeData = VisibilityGroup.Tags.Get(LightProbeRenderer.CurrentLightProbes);
+            if (runtimeData == null)
                 return;
 
-            LightProbeGenerator.UpdateCoefficients(RuntimeData);
+            LightProbeGenerator.UpdateCoefficients(runtimeData);
         }
 
         public override void Draw(RenderContext context)

@@ -82,7 +82,6 @@ namespace Xenko.Input
             if (Devices.ContainsKey(deviceInstance.InstanceGuid))
                 throw new InvalidOperationException($"DirectInput GameController already opened {deviceInstance.InstanceGuid}/{deviceInstance.InstanceName}");
 
-
             GameControllerDirectInput controller;
             try
             {
@@ -98,7 +97,7 @@ namespace Xenko.Input
             var layout = GamePadLayouts.FindLayout(this, controller);
             if (layout != null)
             {
-                // Creata a gamepad wrapping around the controller
+                // Create a gamepad wrapping around the controller
                 var gamePad = new GamePadDirectInput(this, inputManager, controller, layout);
                 controller.Disconnected += (sender, args) =>
                 {

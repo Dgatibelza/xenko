@@ -17,8 +17,7 @@ namespace Xenko.Rendering.Background
         /// Gets the active background.
         /// </summary>
         /// <value>The active background.</value>
-        public RenderBackground ActiveBackground { get; private set; }
-        
+        public RenderBackground ActiveBackground { get; private set; }        
 
         /// <inheritdoc />
         protected internal override void OnSystemRemove()
@@ -35,13 +34,13 @@ namespace Xenko.Rendering.Background
         /// <inheritdoc />
         protected override RenderBackground GenerateComponentData(Entity entity, BackgroundComponent component)
         {
-            return new RenderBackground { RenderGroup = component.RenderGroup };
+            return new RenderBackground { Source = component, RenderGroup = component.RenderGroup };
         }
 
         /// <inheritdoc />
         protected override bool IsAssociatedDataValid(Entity entity, BackgroundComponent component, RenderBackground associatedData)
         {
-            return component.RenderGroup == associatedData.RenderGroup;
+            return component == associatedData.Source && component.RenderGroup == associatedData.RenderGroup;
         }
 
         /// <inheritdoc />

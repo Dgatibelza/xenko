@@ -55,7 +55,7 @@ namespace Xenko.Graphics
         }
 
         /// <summary>
-        /// Gets or sets the RenderTargetView attached to this GraphicsResource.
+        /// Gets the RenderTargetView attached to this GraphicsResource.
         /// Note that only Texture, Texture3D, RenderTarget2D, RenderTarget3D, DepthStencil are using this ShaderResourceView
         /// </summary>
         /// <value>The device child.</value>
@@ -111,15 +111,15 @@ namespace Xenko.Graphics
             var deviceChild = NativeDeviceChild;
             NativeDeviceChild = other.NativeDeviceChild;
             other.NativeDeviceChild = deviceChild;
-            //
+
             var srv = NativeShaderResourceView;
             NativeShaderResourceView = other.NativeShaderResourceView;
             other.NativeShaderResourceView = srv;
-            //
+
             var uav = NativeUnorderedAccessView;
             NativeUnorderedAccessView = other.NativeUnorderedAccessView;
             other.NativeUnorderedAccessView = uav;
-            //
+
             Utilities.Swap(ref renderTargetView, ref other.renderTargetView);
             Utilities.Swap(ref depthStencilView, ref other.depthStencilView);
             Utilities.Swap(ref HasStencil, ref other.HasStencil);
@@ -154,7 +154,28 @@ namespace Xenko.Graphics
             NativeShaderResourceView = GetShaderResourceView(ViewType, ArraySlice, MipLevel);
             NativeUnorderedAccessView = GetUnorderedAccessView(ViewType, ArraySlice, MipLevel);
             NativeRenderTargetView = GetRenderTargetView(ViewType, ArraySlice, MipLevel);
-            NativeDepthStencilView = GetDepthStencilView(out HasStencil);           
+            NativeDepthStencilView = GetDepthStencilView(out HasStencil);
+
+            switch (textureDescription.Options)
+            {
+                case TextureOptions.None:
+                    SharedHandle = IntPtr.Zero;
+                    break;
+                case TextureOptions.Shared:
+                    var sharedResource = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource>();
+                    SharedHandle = sharedResource.SharedHandle;
+                    break;
+#if XENKO_GRAPHICS_API_DIRECT3D11
+                case TextureOptions.SharedNthandle | TextureOptions.SharedKeyedmutex:
+                    var sharedResource1 = NativeDeviceChild.QueryInterface<SharpDX.DXGI.Resource1>();
+                    var uniqueName = "Xenko:" + Guid.NewGuid().ToString();
+                    SharedHandle = sharedResource1.CreateSharedHandle(uniqueName, SharpDX.DXGI.SharedResourceFlags.Write);
+                    SharedNtHandleName = uniqueName;
+                    break; 
+#endif
+                default:
+                    throw new ArgumentOutOfRangeException("textureDescription.Options");
+            }
         }
 
         protected internal override void OnDestroyed()
@@ -164,7 +185,7 @@ namespace Xenko.Graphics
             {
                 NativeDeviceChild = null;
             }
-            else if(GraphicsDevice != null)
+            else if (GraphicsDevice != null)
             {
                 GraphicsDevice.RegisterTextureMemoryUsage(-SizeInBytes);
             }
@@ -241,7 +262,7 @@ namespace Xenko.Graphics
                     }
                     else
                     {
-                        srvDescription.Dimension = ViewDimension == TextureDimension.Texture2D? ShaderResourceViewDimension.Texture2DArray : ShaderResourceViewDimension.Texture1DArray;
+                        srvDescription.Dimension = ViewDimension == TextureDimension.Texture2D ? ShaderResourceViewDimension.Texture2DArray : ShaderResourceViewDimension.Texture1DArray;
                         srvDescription.Texture2DArray.ArraySize = arrayCount;
                         srvDescription.Texture2DArray.FirstArraySlice = arrayOrDepthSlice;
                         srvDescription.Texture2DArray.MipLevels = mipCount;
@@ -396,7 +417,7 @@ namespace Xenko.Graphics
 
             var uavDescription = new UnorderedAccessViewDescription
             {
-                Format = (SharpDX.DXGI.Format)ViewFormat
+                Format = (SharpDX.DXGI.Format)ViewFormat,
             };
 
             if (ArraySize > 1)
@@ -509,7 +530,7 @@ namespace Xenko.Graphics
             return result;
         }
 
-        internal unsafe static SharpDX.DataBox[] ConvertDataBoxes(DataBox[] dataBoxes)
+        internal static unsafe SharpDX.DataBox[] ConvertDataBoxes(DataBox[] dataBoxes)
         {
             if (dataBoxes == null || dataBoxes.Length == 0)
                 return null;
@@ -537,7 +558,7 @@ namespace Xenko.Graphics
                 MipLevels = textureDescription.MipLevels,
                 Usage = (ResourceUsage)textureDescription.Usage,
                 CpuAccessFlags = GetCpuAccessFlagsFromUsage(textureDescription.Usage),
-                OptionFlags = ResourceOptionFlags.None
+                OptionFlags = (ResourceOptionFlags)textureDescription.Options,
             };
             return desc;
         }
@@ -567,7 +588,8 @@ namespace Xenko.Graphics
                 MipLevels = description.MipLevels,
                 Usage = (GraphicsResourceUsage)description.Usage,
                 ArraySize = description.ArraySize,
-                Flags = TextureFlags.None
+                Flags = TextureFlags.None,
+                Options = TextureOptions.None
             };
 
             if ((description.BindFlags & BindFlags.RenderTarget) != 0)
@@ -579,6 +601,14 @@ namespace Xenko.Graphics
             if ((description.BindFlags & BindFlags.ShaderResource) != 0)
                 desc.Flags |= TextureFlags.ShaderResource;
 
+            if ((description.OptionFlags & ResourceOptionFlags.Shared) != 0)
+                desc.Options |= TextureOptions.Shared;
+#if XENKO_GRAPHICS_API_DIRECT3D11
+            if ((description.OptionFlags & ResourceOptionFlags.SharedKeyedmutex) != 0)
+                desc.Options |= TextureOptions.SharedKeyedmutex;
+            if ((description.OptionFlags & ResourceOptionFlags.SharedNthandle) != 0)
+                desc.Options |= TextureOptions.SharedNthandle;
+#endif
             return desc;
         }
 
@@ -592,7 +622,7 @@ namespace Xenko.Graphics
             {
                 if (IsShaderResource && GraphicsDevice.Features.CurrentProfile < GraphicsProfile.Level_10_0)
                 {
-                    throw new NotSupportedException(String.Format("ShaderResourceView for DepthStencil Textures are not supported for Graphics profile < 10.0 (Current: [{0}])", GraphicsDevice.Features.CurrentProfile));
+                    throw new NotSupportedException($"ShaderResourceView for DepthStencil Textures are not supported for Graphics profile < 10.0 (Current: [{GraphicsDevice.Features.CurrentProfile}])");
                 }
                 else
                 {
@@ -614,7 +644,7 @@ namespace Xenko.Graphics
                                 format = SharpDX.DXGI.Format.D32_Float_S8X24_UInt;
                                 break;
                             default:
-                                throw new NotSupportedException(String.Format("Unsupported DepthFormat [{0}] for depth buffer", textureDescription.Format));
+                                throw new NotSupportedException($"Unsupported DepthFormat [{textureDescription.Format}] for depth buffer");
                         }
                     }
                     else
@@ -635,14 +665,14 @@ namespace Xenko.Graphics
                                 format = SharpDX.DXGI.Format.R32G8X24_Typeless;
                                 break;
                             default:
-                                throw new NotSupportedException(String.Format("Unsupported DepthFormat [{0}] for depth buffer", textureDescription.Format));
+                                throw new NotSupportedException($"Unsupported DepthFormat [{textureDescription.Format}] for depth buffer");
                         }
                     }
                 }
             }
 
             int quality = 0;
-            if(GraphicsDevice.Features.CurrentProfile >= GraphicsProfile.Level_10_1 && textureDescription.IsMultisample)
+            if (GraphicsDevice.Features.CurrentProfile >= GraphicsProfile.Level_10_1 && textureDescription.IsMultisample)
                 quality = (int)StandardMultisampleQualityLevels.StandardMultisamplePattern;
 
             var desc = new Texture2DDescription()
@@ -656,7 +686,7 @@ namespace Xenko.Graphics
                 MipLevels = textureDescription.MipLevels,
                 Usage = (ResourceUsage)textureDescription.Usage,
                 CpuAccessFlags = GetCpuAccessFlagsFromUsage(textureDescription.Usage),
-                OptionFlags = ResourceOptionFlags.None
+                OptionFlags = (ResourceOptionFlags)textureDescription.Options,
             };
 
             if (textureDescription.Dimension == TextureDimension.TextureCube)
@@ -672,15 +702,19 @@ namespace Xenko.Graphics
             // Determine TypeLess Format and ShaderResourceView Format
             switch (format)
             {
+                case PixelFormat.R16_Typeless:
                 case PixelFormat.D16_UNorm:
                     viewFormat = PixelFormat.R16_Float;
                     break;
+                case PixelFormat.R32_Typeless:
                 case PixelFormat.D32_Float:
                     viewFormat = PixelFormat.R32_Float;
                     break;
+                case PixelFormat.R24G8_Typeless:
                 case PixelFormat.D24_UNorm_S8_UInt:
                     viewFormat = PixelFormat.R24_UNorm_X8_Typeless;
                     break;
+                case PixelFormat.R32_Float_X8X24_Typeless:
                 case PixelFormat.D32_Float_S8X24_UInt:
                     viewFormat = PixelFormat.R32_Float_X8X24_Typeless;
                     break;
@@ -715,7 +749,7 @@ namespace Xenko.Graphics
                     viewFormat = SharpDX.DXGI.Format.D32_Float_S8X24_UInt;
                     break;
                 default:
-                    throw new NotSupportedException(String.Format("Unsupported depth format [{0}]", format));
+                    throw new NotSupportedException($"Unsupported depth format [{format}]");
             }
 
             return viewFormat;
@@ -733,7 +767,7 @@ namespace Xenko.Graphics
                 MipLevels = textureDescription.MipLevels,
                 Usage = (ResourceUsage)textureDescription.Usage,
                 CpuAccessFlags = GetCpuAccessFlagsFromUsage(textureDescription.Usage),
-                OptionFlags = ResourceOptionFlags.None
+                OptionFlags = (ResourceOptionFlags)textureDescription.Options,
             };
             return desc;
         }

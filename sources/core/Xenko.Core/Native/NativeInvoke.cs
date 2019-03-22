@@ -27,7 +27,7 @@ namespace Xenko.Core.Native
 
         static NativeInvoke()
         {
-            NativeLibrary.PreloadLibrary(LibraryName);
+            NativeLibrary.PreloadLibrary(LibraryName, typeof(NativeInvoke));
         }
 
         /// <summary>
@@ -39,7 +39,7 @@ namespace Xenko.Core.Native
         public static extern void Sleep(int ms);
 
         [UnmanagedFunctionPointer(CallingConvention.Cdecl)]
-        delegate void ManagedLogDelegate(string log);
+        private delegate void ManagedLogDelegate(string log);
 
         private static ManagedLogDelegate managedLogDelegateSingleton;
 

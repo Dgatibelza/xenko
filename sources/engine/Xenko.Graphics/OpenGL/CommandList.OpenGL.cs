@@ -821,7 +821,7 @@ namespace Xenko.Graphics
             PreDraw();
 
 #if XENKO_GRAPHICS_API_OPENGLES
-            if(baseVertexLocation != 0)
+            if (baseVertexLocation != 0)
                 throw new NotSupportedException("DrawIndexed with no null baseVertexLocation is not supported on OpenGL ES.");
             GL.DrawElements(newPipelineState.PrimitiveType, indexCount, indexBuffer.Type, indexBuffer.Buffer.StagingData + indexBuffer.Offset + (startIndexLocation * indexBuffer.ElementSize)); // conversion to IntPtr required on Android
 #else
@@ -1575,8 +1575,12 @@ namespace Xenko.Graphics
         /// <param name="stage">The stage.</param>
         /// <param name="slot">The slot.</param>
         /// <param name="unorderedAccessView">The unordered access view.</param>
+        /// <param name="uavInitialOffset">The Append/Consume buffer offset. A value of -1 indicates the current offset
+        ///     should be kept. Any other values set the hidden counter for that Appendable/Consumable
+        ///     UAV. uavInitialCount is only relevant for UAVs which have the 'Append' or 'Counter' buffer
+        ///     flag, otherwise the argument is ignored.</param>
         /// <exception cref="System.ArgumentException">Invalid stage.;stage</exception>
-        internal void SetUnorderedAccessView(ShaderStage stage, int slot, GraphicsResource unorderedAccessView)
+        internal void SetUnorderedAccessView(ShaderStage stage, int slot, GraphicsResource unorderedAccessView, int uavInitialOffset)
         {
 #if DEBUG
             GraphicsDevice.EnsureContextActive();

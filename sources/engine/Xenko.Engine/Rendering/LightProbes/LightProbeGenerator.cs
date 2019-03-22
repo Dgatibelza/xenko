@@ -24,7 +24,7 @@ namespace Xenko.Rendering.LightProbes
     {
         public const int LambertHamonicOrder = 3;
 
-        public static Dictionary<LightProbeComponent, FastList<Color3>> GenerateCoefficients(ISceneRendererContext context, LightProbeComponent[] lightProbes)
+        public static Dictionary<LightProbeComponent, FastList<Color3>> GenerateCoefficients(ISceneRendererContext context)
         {
             using (var cubemapRenderer = new CubemapSceneRenderer(context, 256))
             {
@@ -69,7 +69,7 @@ namespace Xenko.Rendering.LightProbes
                         var lightProbeCoefficients = new FastList<Color3>();
                         for (int i = 0; i < coefficients.Length; i++)
                         {
-                            lightProbeCoefficients.Add(coefficients[i]*SphericalHarmonics.BaseCoefficients[i]);
+                            lightProbeCoefficients.Add(coefficients[i] * SphericalHarmonics.BaseCoefficients[i]);
                         }
 
                         lightProbesCoefficients.Add(lightProbe, lightProbeCoefficients);
@@ -92,15 +92,14 @@ namespace Xenko.Rendering.LightProbes
 
         public static unsafe void UpdateCoefficients(LightProbeRuntimeData runtimeData)
         {
-
             fixed (Color3* destColors = runtimeData.Coefficients)
             {
                 for (var lightProbeIndex = 0; lightProbeIndex < runtimeData.LightProbes.Length; lightProbeIndex++)
                 {
-                    var lightProbe = runtimeData.LightProbes[lightProbeIndex];
+                    var lightProbe = runtimeData.LightProbes[lightProbeIndex] as LightProbeComponent;
 
                     // Copy coefficients
-                    if (lightProbe.Coefficients != null)
+                    if (lightProbe?.Coefficients != null)
                     {
                         var lightProbeCoefStart = lightProbeIndex * LambertHamonicOrder * LambertHamonicOrder;
                         for (var index = 0; index < LambertHamonicOrder * LambertHamonicOrder; index++)
@@ -176,7 +175,7 @@ namespace Xenko.Rendering.LightProbes
                 probeIndices[i] = *(Int4*)tetrahedron.Vertices;
             }
 
-            var lightProbesCopy = new LightProbeComponent[lightProbes.Count];
+            var lightProbesCopy = new object[lightProbes.Count];
             for (int i = 0; i < lightProbes.Count; ++i)
                 lightProbesCopy[i] = lightProbes[i];
 
@@ -195,22 +194,5 @@ namespace Xenko.Rendering.LightProbes
 
             return result;
         }
-    }
-
-    public class LightProbeRuntimeData
-    {
-        // Input data
-        public LightProbeComponent[] LightProbes;
-
-        // Computed data
-        public Vector3[] Vertices;
-        public int UserVertexCount;
-        public FastList<BowyerWatsonTetrahedralization.Tetrahedron> Tetrahedra;
-        public FastList<BowyerWatsonTetrahedralization.Face> Faces;
-
-        // Data to upload to GPU
-        public Color3[] Coefficients;
-        public Vector4[] Matrices;
-        public Int4[] LightProbeIndices;
     }
 }
