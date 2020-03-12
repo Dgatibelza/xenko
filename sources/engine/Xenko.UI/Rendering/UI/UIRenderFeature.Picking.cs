@@ -19,10 +19,11 @@ namespace Xenko.Rendering.UI
 
         private readonly List<PointerEvent> compactedPointerEvents = new List<PointerEvent>();
 
-        [Obsolete]
-        public UIElement UIElementUnderMouseCursor { get; private set; }
 
-        partial void PickingUpdate(RenderUIElement renderUIElement, Viewport viewport, ref Matrix worldViewProj, GameTime drawTime)
+        
+
+        partial void PickingUpdate(RenderUIElement renderUIElement, Viewport viewport, ref Matrix worldViewProj, GameTime drawTime, ref UIElement elementUnderMouseCursor)
+
         {
             if (renderUIElement.Page?.RootElement == null)
                 return;
@@ -30,7 +31,7 @@ namespace Xenko.Rendering.UI
             var inverseZViewProj = worldViewProj;
             inverseZViewProj.Row3 = -inverseZViewProj.Row3;
 
-            UpdateMouseOver(ref viewport, ref inverseZViewProj, renderUIElement);
+            elementUnderMouseCursor = UpdateMouseOver(ref viewport, ref inverseZViewProj, renderUIElement);
             UpdateTouchEvents(ref viewport, ref inverseZViewProj, renderUIElement, drawTime);
         }
 
@@ -232,17 +233,18 @@ namespace Xenko.Rendering.UI
             }
         }
 
-        private void UpdateMouseOver(ref Viewport viewport, ref Matrix worldViewProj, RenderUIElement state)
+        private UIElement UpdateMouseOver(ref Viewport viewport, ref Matrix worldViewProj, RenderUIElement state)
         {
             if (input == null || !input.HasMouse)
-                return;
+                return null;
 
             var intersectionPoint = Vector3.Zero;
             var mousePosition = input.MousePosition;
             var rootElement = state.Page.RootElement;
             var lastMouseOverElement = state.LastMouseOverElement;
 
-            UIElement uIElementUnderMouseCursor = lastMouseOverElement;
+            UIElement mouseOverElement = lastMouseOverElement;
+
 
             // determine currently overred element.
             if (mousePosition != state.LastMousePosition
@@ -250,13 +252,15 @@ namespace Xenko.Rendering.UI
             {
                 Ray uiRay;
                 if (!GetTouchPosition(state.Resolution, ref viewport, ref worldViewProj, mousePosition, out uiRay))
-                    return;
+                    return null;
 
-                uIElementUnderMouseCursor = GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint);
+                mouseOverElement = GetElementAtScreenPosition(rootElement, ref uiRay, ref worldViewProj, ref intersectionPoint);
+                
+
             }
-
+            
             // find the common parent between current and last overred elements
-            var commonElement = FindCommonParent(uIElementUnderMouseCursor, lastMouseOverElement);
+            var commonElement = FindCommonParent(mouseOverElement, lastMouseOverElement);
 
             // disable mouse over state to previously overred hierarchy
             var parent = lastMouseOverElement;
@@ -270,13 +274,13 @@ namespace Xenko.Rendering.UI
 
             
             // enable mouse over state to currently overred hierarchy
-            if (uIElementUnderMouseCursor != null)
+            if (mouseOverElement != null)
             {
                 // the element itself
-                uIElementUnderMouseCursor.MouseOverState = MouseOverState.MouseOverElement;
+                mouseOverElement.MouseOverState = MouseOverState.MouseOverElement;
 
                 // its hierarchy
-                parent = uIElementUnderMouseCursor.VisualParent;
+                parent = mouseOverElement.VisualParent;
                 while (parent != null)
                 {
                     if (parent.IsHierarchyEnabled)
@@ -286,11 +290,12 @@ namespace Xenko.Rendering.UI
                 }
             }
 
-            UIElementUnderMouseCursor = uIElementUnderMouseCursor;
+            UIElementUnderMouseCursor = mouseOverElement;
 
             // update cached values
-            state.LastMouseOverElement = uIElementUnderMouseCursor;
+            state.LastMouseOverElement = mouseOverElement;
             state.LastMousePosition = mousePosition;
+            return mouseOverElement;
         }
 
         private UIElement FindCommonParent(UIElement element1, UIElement element2)
