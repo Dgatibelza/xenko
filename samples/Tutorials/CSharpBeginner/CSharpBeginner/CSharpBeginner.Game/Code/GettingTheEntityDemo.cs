@@ -1,5 +1,5 @@
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
+using Stride.Core.Mathematics;
+using Stride.Engine;
 
 namespace CSharpBeginner.Code
 {
@@ -9,8 +9,8 @@ namespace CSharpBeginner.Code
     /// </summary>
     public class GettingTheEntityDemo : SyncScript
     {
-        string name = string.Empty;
-        string parentName = string.Empty;
+        private string name = string.Empty;
+        private string parentName = string.Empty;
 
         // Executes only once, at the start of the game
         public override void Start()
@@ -19,7 +19,7 @@ namespace CSharpBeginner.Code
             name = Entity.Name;
 
             // We retrieve the parent entity by using the GetParent() command.
-            Entity parentEntity = Entity.GetParent();
+            var parentEntity = Entity.GetParent();
 
             // It is possible that our entity does not have a parent. We therefore check if the parent is not null.
             if (parentEntity != null)

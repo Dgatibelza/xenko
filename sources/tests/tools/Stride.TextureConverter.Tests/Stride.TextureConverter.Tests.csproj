@@ -1,0 +1,28 @@
+﻿<Project>
+  <Import Project="..\..\..\targets\Stride.props" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
+  <PropertyGroup>
+    <StrideAssemblyProcessor>false</StrideAssemblyProcessor>
+    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
+    <StrideBuildTags>WindowsTools</StrideBuildTags>
+    <StrideOutputFolder>Tests\$(AssemblyName)</StrideOutputFolder>
+    <StrideCompilerTargetsEnable Condition="'$(StridePackageBuild)' == 'true'">false</StrideCompilerTargetsEnable>
+  </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="xunit" Version="2.4.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="..\..\..\data\tests\TextureConverter\**\*.*">
+      <Link>InputImages\%(RecursiveDir)%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\tools\Stride.TextureConverter\Stride.TextureConverter.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Service Include="{82a7f48d-3b50-4b1e-b82e-3ada8210c358}" />
+  </ItemGroup>
+  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
+</Project>

@@ -1,14 +1,14 @@
-// Copyright (c) Xenko contributors (https://xenko.com) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
+// Copyright (c) Stride contributors (https://stride3d.net) and Silicon Studio Corp. (https://www.siliconstudio.co.jp)
 // Distributed under the MIT license. See the LICENSE.md file in the project root for more information.
-using Xenko.Core;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.Engine.Events;
-using Xenko.Graphics;
-using Xenko.Rendering.Sprites;
-using Xenko.UI;
-using Xenko.UI.Controls;
-using Xenko.UI.Panels;
+using Stride.Core;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.Engine.Events;
+using Stride.Graphics;
+using Stride.Rendering.Sprites;
+using Stride.UI;
+using Stride.UI.Controls;
+using Stride.UI.Panels;
 
 namespace JumpyJet
 {
@@ -88,16 +88,22 @@ namespace JumpyJet
 
         private void CreateMainMenuUI()
         {
-            var xenkoLogo = new ImageElement { Source = SpriteFromSheet.Create(UIImages, "xk_logo") };
+            var strideLogo = new ImageElement { Source = SpriteFromSheet.Create(UIImages, "sd_logo") };
 
-            xenkoLogo.SetCanvasPinOrigin(new Vector3(0.5f, 0.5f, 1f));
-            xenkoLogo.SetCanvasRelativeSize(new Vector3(0.75f, 0.5f, 1f));
-            xenkoLogo.SetCanvasRelativePosition(new Vector3(0.5f, 0.3f, 1f));
+            strideLogo.SetCanvasPinOrigin(new Vector3(0.5f, 0.5f, 1f));
+            strideLogo.SetCanvasRelativeSize(new Vector3(0.75f, 0.5f, 1f));
+            strideLogo.SetCanvasRelativePosition(new Vector3(0.5f, 0.3f, 1f));
 
             var startButton = new Button
             {
-                Content = new TextBlock {Font = Font, Text = "Touch to Start", TextColor = Color.Black, 
-                    HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center},
+                Content = new TextBlock
+                {
+                    Font = Font,
+                    Text = "Touch to Start",
+                    TextColor = Color.Black,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                },
                 NotPressedImage = buttonImage,
                 PressedImage = buttonImage,
                 MouseOverImage = buttonImage,
@@ -109,12 +115,12 @@ namespace JumpyJet
             startButton.SetCanvasRelativePosition(new Vector3(0.5f, 0.7f, 0f));
             startButton.Click += (sender, args) =>
             {
-                GameGlobals.GameStartedventKey.Broadcast();
+                GameGlobals.GameStartedEventKey.Broadcast();
                 StartGameMode();
             };
 
             var mainMenuCanvas = new Canvas();
-            mainMenuCanvas.Children.Add(xenkoLogo);
+            mainMenuCanvas.Children.Add(strideLogo);
             mainMenuCanvas.Children.Add(startButton);
 
             mainMenuRoot = new ModalElement
@@ -129,7 +135,9 @@ namespace JumpyJet
         {
             scoreTextBlock = new TextBlock
             {
-                Font = Font, TextColor = Color.Black, VerticalAlignment = VerticalAlignment.Center
+                Font = Font,
+                TextColor = Color.Black,
+                VerticalAlignment = VerticalAlignment.Center
             };
             scoreTextBlock.SetCanvasPinOrigin(new Vector3(0.5f, 0.5f, 1f));
             scoreTextBlock.SetCanvasRelativePosition(new Vector3(0.2f, 0.05f, 0f));
@@ -150,8 +158,14 @@ namespace JumpyJet
         {
             var menuButton = new Button
             {
-                Content = new TextBlock { Font = Font, Text = "Menu", TextColor = Color.Black, 
-                    HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center},
+                Content = new TextBlock
+                {
+                    Font = Font,
+                    Text = "Menu",
+                    TextColor = Color.Black,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                },
                 PressedImage = buttonImage,
                 NotPressedImage = buttonImage,
                 MouseOverImage = buttonImage,
@@ -169,8 +183,14 @@ namespace JumpyJet
 
             var retryButton = new Button
             {
-                Content = new TextBlock { Font = Font, Text = "Retry", TextColor = Color.Black, 
-                    HorizontalAlignment = HorizontalAlignment.Center, VerticalAlignment = VerticalAlignment.Center},
+                Content = new TextBlock
+                {
+                    Font = Font,
+                    Text = "Retry",
+                    TextColor = Color.Black,
+                    HorizontalAlignment = HorizontalAlignment.Center,
+                    VerticalAlignment = VerticalAlignment.Center
+                },
                 Padding = new Thickness(74, 30, 25, 30),
                 MinimumWidth = 190f,
                 PressedImage = buttonImage,
@@ -183,14 +203,14 @@ namespace JumpyJet
             retryButton.Click += (sender, args) =>
             {
                 GameGlobals.GameResetEventKey.Broadcast();
-                GameGlobals.GameStartedventKey.Broadcast();
+                GameGlobals.GameStartedEventKey.Broadcast();
                 StartGameMode();
             };
 
             var gameOverCanvas = new Canvas();
             gameOverCanvas.Children.Add(menuButton);
             gameOverCanvas.Children.Add(retryButton);
-            
+
             gameOverRoot = new ModalElement
             {
                 HorizontalAlignment = HorizontalAlignment.Stretch,

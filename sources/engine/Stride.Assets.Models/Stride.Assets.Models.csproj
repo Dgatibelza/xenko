@@ -1,0 +1,46 @@
+<Project>
+  <Import Project="..\..\targets\Stride.props" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
+  <PropertyGroup>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideAssemblyProcessorOptions>$(StrideAssemblyProcessorDefaultOptions)</StrideAssemblyProcessorOptions>
+    <TargetFrameworks>$(StrideEditorTargetFrameworks)</TargetFrameworks>
+    <RuntimeIdentifier>win7-x64</RuntimeIdentifier>
+    <AppendRuntimeIdentifierToOutputPath>false</AppendRuntimeIdentifierToOutputPath>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\..\tools\Stride.Importer.Assimp\Stride.Importer.Assimp.vcxproj" PrivateAssets="All" />
+    <ProjectReference Include="..\..\tools\Stride.Importer.Common\Stride.Importer.Common.vcxproj" PrivateAssets="All" />
+    <ProjectReference Include="..\..\tools\Stride.Importer.FBX\Stride.Importer.FBX.vcxproj" PrivateAssets="All" />
+    <ProjectReference Include="..\Stride.Assets\Stride.Assets.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Analysis\" />
+  </ItemGroup>
+  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
+
+  <PropertyGroup>
+    <TargetsForTfmSpecificBuildOutput>$(TargetsForTfmSpecificBuildOutput);IncludeExtraAssemblies</TargetsForTfmSpecificBuildOutput>
+  </PropertyGroup>
+  <Target Name="IncludeExtraAssemblies">
+    <ItemGroup>
+      <!-- Needed by .NET Core runtime to be able to load C++/CLI assemblies -->
+      <BuildOutputInPackage Include="$(OutputPath)ijwhost.dll" Condition="Exists('$(OutputPath)ijwhost.dll')" />
+      <BuildOutputInPackage Include="$(OutputPath)Stride.Assimp.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Stride.Assimp.Translation.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.Assimp.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.Assimp.ssdeps" />
+      <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.FBX.dll" />
+      <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.FBX.ssdeps" />
+      <BuildOutputInPackage Include="$(OutputPath)Stride.Importer.Common.dll" />
+      <TfmSpecificPackageFile Include="$(OutputPath)x64\assimp-vc140-mt.dll" PackagePath="lib\$(TargetFramework)\x64" />
+      <TfmSpecificPackageFile Include="$(OutputPath)x64\libfbxsdk.dll" PackagePath="lib\$(TargetFramework)\x64" />
+    </ItemGroup>
+  </Target>
+</Project>

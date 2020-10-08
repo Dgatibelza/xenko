@@ -1,0 +1,34 @@
+<Project>
+  <PropertyGroup>
+    <StrideRuntime>true</StrideRuntime>
+    <StrideRuntimeWindowsDotNet>true</StrideRuntimeWindowsDotNet>
+    <StrideRuntimeWindowsNetCoreApp3>true</StrideRuntimeWindowsNetCoreApp3>
+    <StrideGraphicsApiDependent>true</StrideGraphicsApiDependent>
+  </PropertyGroup>
+  <Import Project="..\..\targets\Stride.props" />
+  <Import Project="Sdk.props" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
+  <PropertyGroup>
+    <UseWPF>true</UseWPF>
+    <UseWindowsForms>true</UseWindowsForms>
+    <StridePlatformDependent>true</StridePlatformDependent>
+    <StrideAssemblyProcessor>true</StrideAssemblyProcessor>
+    <StrideBuildTags>*</StrideBuildTags>
+    <StrideCodeAnalysis>true</StrideCodeAnalysis>
+    <DefineConstants Condition="'$(StridePlatform)' == 'Windows' And $(TargetFramework.StartsWith('net4'))">$(DefineConstants);STRIDE_INPUT_RAWINPUT</DefineConstants>
+  </PropertyGroup>
+  <Import Condition="$(StrideUI.Contains('SDL'))" Project="..\..\targets\SDL.targets" />
+  <ItemGroup>
+    <Compile Include="..\..\shared\SharedAssemblyInfo.cs">
+      <Link>Properties\SharedAssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\Stride.Games\Stride.Games.csproj" />
+    <PackageReference Include="SharpDX.RawInput" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows' And $(TargetFramework.StartsWith('net4'))" />
+    <PackageReference Include="SharpDX.DirectInput" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows'" />
+    <PackageReference Include="SharpDX.XInput" Version="4.2.0" Condition="'$(StridePlatform)' == 'Windows'" />
+    <PackageReference Include="System.Runtime.CompilerServices.Unsafe" Version="4.7.1" Condition="'$(StridePlatform)' == 'Windows'" />
+  </ItemGroup>
+  <Import Project="$(StrideSdkTargets)" />
+  <Import Project="Sdk.targets" Sdk="MSBuild.Sdk.Extras" Version="2.0.87" />
+</Project>

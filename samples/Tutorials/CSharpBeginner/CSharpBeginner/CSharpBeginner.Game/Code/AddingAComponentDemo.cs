@@ -1,5 +1,5 @@
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
+using Stride.Core.Mathematics;
+using Stride.Engine;
 
 namespace CSharpBeginner.Code
 {
@@ -9,9 +9,9 @@ namespace CSharpBeginner.Code
     /// </summary>
     public class AddingAComponentDemo : SyncScript
     {
-        AmmoComponent ammoComponent1;
-        AmmoComponent ammoComponent2;
-        AmmoComponent ammoComponent3;
+        private AmmoComponent ammoComponent1;
+        private AmmoComponent ammoComponent2;
+        private AmmoComponent ammoComponent3;
 
         public override void Start()
         {
@@ -27,14 +27,15 @@ namespace CSharpBeginner.Code
             Entity.RemoveAll<AmmoComponent>();
 
 
-            // When there is no component of this type attached, but we like there to be one, we can create it automatically
-            // NOTE: when a component is created like this, the 'Start' method will be called after this script's Update method has executed
+            // When there is no AmmoComponent of attached, but we like there to be one, we can create it automatically
+            // NOTE: when a component is created this way,
+            // the 'Start' method of the AmmoComponent will be called after this script's Update method has executed
             ammoComponent3 = Entity.GetOrCreate<AmmoComponent>();
         }
 
         public override void Update()
         {
-            DebugText.Print("Total of ammo of the automatically created AmmoComponent3: " + ammoComponent3.GetTotalAmmo().ToString(), new Int2(440, 200));
+            DebugText.Print("Remaining ammo: " + ammoComponent3.GetRemainingAmmo().ToString(), new Int2(440, 200));
         }
     }
 }

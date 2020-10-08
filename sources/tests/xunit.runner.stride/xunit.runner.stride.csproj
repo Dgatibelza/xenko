@@ -1,0 +1,29 @@
+<Project Sdk="MSBuild.Sdk.Extras/2.0.87" ToolsVersion="Current">
+  <Import Project="..\..\targets\Stride.Core.TargetFrameworks.Editor.props" />
+  <PropertyGroup>
+    <TargetFrameworks>net461;$(StrideEditorTargetFrameworks)</TargetFrameworks>
+    <StrideSkipAutoPack>false</StrideSkipAutoPack>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Update="**\*.xaml.cs">
+      <DependentUpon>%(Filename)</DependentUpon>
+    </Compile>
+    <AvaloniaResource Include="**\*.xaml">
+      <SubType>Designer</SubType>
+    </AvaloniaResource>
+    <AvaloniaResource Include="Assets\*" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="0.9.0-preview7" />
+    <PackageReference Include="Avalonia.Desktop" Version="0.9.0-preview7" />
+    <PackageReference Include="Avalonia.ReactiveUI" Version="0.9.0-preview7" />
+    <PackageReference Include="xunit" Version="2.4.1" />
+    <PackageReference Include="xunit.runner.utility" Version="2.4.1" />
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+  <Import Project="..\..\targets\Stride.PackageVersion.targets" />
+  <Import Project="..\..\targets\Stride.AutoPack.targets" />
+</Project>

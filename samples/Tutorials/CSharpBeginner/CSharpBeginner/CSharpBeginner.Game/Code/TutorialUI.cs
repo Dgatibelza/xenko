@@ -1,11 +1,10 @@
 using System.Collections.Generic;
-using Xenko.Core.Diagnostics;
-using Xenko.Core.Mathematics;
-using Xenko.Engine;
-using Xenko.UI;
-using Xenko.UI.Controls;
-using Xenko.UI.Events;
-using Xenko.UI.Panels;
+using Stride.Core.Mathematics;
+using Stride.Engine;
+using Stride.UI;
+using Stride.UI.Controls;
+using Stride.UI.Events;
+using Stride.UI.Panels;
 
 namespace CSharpBeginner.Code
 {
@@ -42,6 +41,7 @@ namespace CSharpBeginner.Code
             var placeHolderTextBlock = placeHolderButton.VisualChildren[0] as TextBlock;
             placeHolderButton.Visibility = Visibility.Hidden;
 
+            //Tutorial button text - Tutorial scene name
             var tutorialScenes = new Dictionary<string, string>();
             tutorialScenes.Add("Getting the entity", "Getting the entity");
             tutorialScenes.Add("Child entities", "Child entities");
@@ -49,12 +49,15 @@ namespace CSharpBeginner.Code
             tutorialScenes.Add("Properties", "Properties");
             tutorialScenes.Add("Getting a component", "Getting a component");
             tutorialScenes.Add("Adding a component", "Adding a component");
+            tutorialScenes.Add("Delta time", "DeltaTime");
             tutorialScenes.Add("Cloning entities", "Cloning entities");
             tutorialScenes.Add("Removing entities", "Removing entities");
-            tutorialScenes.Add("Delta time", "DeltaTime");
             tutorialScenes.Add("Keyboard input", "Keyboard input");
             tutorialScenes.Add("Mouse input", "Mouse input");
             tutorialScenes.Add("Virtual buttons", "Virtual buttons");
+            tutorialScenes.Add("Linear Interpolation", "Linear Interpolation");
+            tutorialScenes.Add("Loading content from code", "Loading content");
+            tutorialScenes.Add("Instantiating prefabs", "Instantiating prefabs");
 
             foreach (var keyPair in tutorialScenes)
             {
@@ -78,7 +81,7 @@ namespace CSharpBeginner.Code
 
                 };
                 button.Click += (sender, e) => BtnLoadTutorial(sender, e, keyPair);
-                
+
                 tutorialButtonsStackPanel.Children.Add(button);
             }
             tutorialButtonsStackPanel.Children.Remove(placeHolderButton);
@@ -105,7 +108,7 @@ namespace CSharpBeginner.Code
             tutorialTitleTxt.Text = newTutorialScene.Key;
             tutorialButtonsStackPanel.Visibility = Visibility.Hidden;
             tutorialScene = Content.Load<Scene>("Scenes/Basics/" + newTutorialScene.Value);
-            tutorialScene.Parent = Entity.Scene;  
+            tutorialScene.Parent = Entity.Scene;
             foreach (var entity in this.tutorialScene.Entities)
             {
                 if (entity.Name == "Camera")
